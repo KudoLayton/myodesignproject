@@ -2,6 +2,7 @@
 import struct
 import datetime
 import time
+import binascii
 
 #error code를 원래 순서로 변환(에러코드가 자꾸 거꾸로 나오므로 해주어야 함)
 def chn_errcode(origin_str, len_non_info):
@@ -33,7 +34,25 @@ def ble_recieve_test(p):
 				print "recieve: %s\n" % ''.join('%02X' % c for c in rx_buffer)
 				rx_buffer = []
 
+
+###############################################
 #System class(0x00)
+
+#Get Info(API reference p.191)
+def ble_cmd_system_get_info(p):
+	p.write(struct.pack('4B', 0x00, 0x00, 0x00, 0x08))
+
+#response of Get Info
+def ble_rsp_system_get_info(p):
+	respond = p.read(16)
+	isReal = False
+	signature = []	
+	for b in respond[:4]:
+		signature.append(ord(b))
+	if [0x00, 0x0C, 0x00, 0x08] == signature:
+		isReal = True
+	major, minor, patch, build, ll_version, protocol_version, hw = struct.unpack('<5HBB', respond[4:])
+	return isReal, build, protocol_version
 
 #Reset(API reference p.193)
 #boot_in_dfu = 0:main program에서 부팅
@@ -55,6 +74,49 @@ def ble_rsp_system_hello(p):
 		temp = temp + ("%02X" % (ord(b)))
 	return temp
 
+###############################################
+#Attribut Database class(0x02)
+
+#Read Type(API reference p.72)
+#handle: connect handle
+def ble_cmd_attributes_read_type(p, handle):
+	p.write(struct.pack('<4BH', 0x00, 0x02, 0x02, 0x02, handle))
+
+#response of Read Type
+#handle: connect handle
+#result = 0: 정상적으로 읽었음
+#result != 0: 에러 발생 (혹은 len(result) == 0 면 그냥 못받은 거)
+#value: UUID
+def ble_rsp_attributes_read_type(p):
+	handle = 0
+	result = []
+	value = []
+	expected_length = 0
+	rx_buffer = []
+	while(p.inWaiting()):
+			b = ord(p.read())
+			if expected_length == 0 and b == 0x00:
+				rx_buffer.append(b)
+
+			elif len(rx_buffer) == 1 and expected_length == 0:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+
+			else:
+				rx_buffer.append(b)
+
+			if len(rx_buffer) == expected_length:
+
+				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+				rx_payload = rx_buffer[4:]
+				handle, _result, value_len = struct.unpack('<HHB', ''.join(chr(b) for b in rx_payload[:5]))
+				value = reversed(rx_payload[5:])
+				result = ''.join('%04X' % _result)
+				rx_buffer = []
+
+	return handle, result, value
+
+###############################################
 #Connection class(0x03)
 
 #Disconnect(API reference p.83)
@@ -70,6 +132,7 @@ def ble_rsp_connection_disconnect(p):
 	return chn_errcode(response, 5)
 
 
+###############################################
 #Generic Access Profile class(0x06)
 
 #ConnectDirect(API reference p.95)
@@ -83,12 +146,6 @@ def ble_rsp_connection_disconnect(p):
 #timeout: timeout을 정하는 parameter로 10 - 3200사이에서 결정할 수 있다.(단위는 10ms)
 #latency: slave latency를 결정하는 parameter이다. 주의!: (Slave_Laytency + 1) * Connection interval < timeout
 def ble_cmd_gap_connect_direct(p, bd_addr, addr_type, conn_interval_min, conn_interval_max, timeout, latency):
-	addr_0 = 0
-	addr_1 = 0
-	addr_2 = 0
-	addr_3 = 0
-	addr_4 = 0
-	addr_5 = 0
 	addr_0 = bd_addr[0]
 	addr_1 = bd_addr[1]
 	addr_2 = bd_addr[2]
@@ -101,12 +158,30 @@ def ble_cmd_gap_connect_direct(p, bd_addr, addr_type, conn_interval_min, conn_in
 #result != -: 에러 발생
 #_connection_handle: 새로운 연결에 대한 connection handle값
 def ble_rsp_gap_connect_direct(p):
-	response = p.read(7)
-	_result = response[4:-1] 
-	_connection_handle = ord(response[-1:])
-	result = ''
-	for b in _result:
-		result = result + ("%02X" % (ord(b)))
+	result = []
+	rx_buffer = []
+	rx_expected_length = 0
+	_connection_handle = 0
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if b == 0x00 and rx_expected_length == 0:
+			rx_buffer.append(b)
+		elif len(rx_buffer) == 1:
+			if b == 0x03:
+				rx_buffer.append(b)
+				rx_expected_length = 4 + rx_buffer[1]
+			else:
+				rx_buffer = []
+				rx_expected_length = 0
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == rx_expected_length and rx_expected_length > 0:
+			_result = rx_buffer[4:6]
+			_connection_handle = rx_buffer[6]
+			result = ''.join('%02X' % c for c in reversed(_result))
+			return result, _connection_handle
+
 	return result, _connection_handle
 
 #Discover(API reference p.101)
