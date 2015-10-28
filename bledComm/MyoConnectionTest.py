@@ -215,20 +215,20 @@ uuid = [0x00, 0x28]
 #revMyoUUID = []
 #for b in reversed(myoUUID):
 #	revMyoUUID.append(b)
-print "Myo의 attribute 정보를 요청합니다."
-bledAPI.ble_cmd_attclient_read_by_group_type(ser, connection_handle, 0x0001, 0xFFFF, uuid)
+print "Myo의 정보를 요청합니다."
+bledAPI.ble_cmd_attclient_read_by_handle(ser, connection_handle, 0x0017)
 
 result = []
 while len(result) == 0:
-	handle, result = bledAPI.ble_rsp_attclient_read_by_group_type(ser)
+	handle, result = bledAPI.ble_rsp_attclient_read_by_handle(ser)
 
 isItOver = False
 while not isItOver:
-	isItOver = bledAPI.ble_msg_attclient_group_found_evt_t(ser)
+	isItOver = bledAPI.ble_evt_attclient_attribute_value_evt_t(ser)
 
 if result == "0000":
 	connected = True
-	print 'Myo의 Attribute를 성공적으로 받아왔습니다.'
+	print 'Myo의 정보를 성공적으로 받아왔습니다.'
 	print 'connection_handle: %d' % handle
 	print "================================================="
 else:

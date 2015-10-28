@@ -92,8 +92,8 @@ def ble_cmd_attributes_read(p, handle, offset):
 def ble_rsp_attributes_read(p):
 	rx_buffer = []
 	expected_length = 0
-	handle = []
-	offset = []
+	handle = 0
+	offset = 0
 	result = []
 	value = []
 	while(p.inWaiting()):
@@ -111,12 +111,9 @@ def ble_rsp_attributes_read(p):
 		if len(rx_buffer) == expected_length and expected_length > 0:
 			packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
 			rx_payload = rx_buffer[4:]
-			handle = ''.join('%02X' % a for a in reversed(rx_payload[0:2]))
-			offset = ''.join('%02X' % a for a in reversed(rx_payload[2:4]))
-			result = ''.join('%02X' % a for a in reversed(rx_payload[4:6]))
-			value_len = rx_payload[6]
-			print 'value length: %d'% value_len 
-			value = reversed(rx_payload[7:])
+			handle, offset, _result, valueLen = struct.unpack('<3HB', ''.join(chr(b) for b in rx_payload[:7]))
+			value = rx_payload[7:]
+			result = '%04X' % _result
 
 	return handle, offset, result, value
 
@@ -182,7 +179,7 @@ def ble_rsp_connection_disconnect(p):
 #start: 첫번째 attribute handle
 #end: 마지막 attribute handle
 def ble_cmd_attclient_find_information(p, connection, start, end):
-	p.write(struct.pack('5BHH', 0x00, 0x05, 0x04, 0x03, connection, start, end))
+	p.write(struct.pack('<5BHH', 0x00, 0x05, 0x04, 0x03, connection, start, end))
 
 #response of Find Information
 #connection: Connection Handle
@@ -234,6 +231,43 @@ def ble_cmd_attclient_read_by_group_type(p, connection, start, end, uuid):
 #result = 0: 정상 실행
 #result != 0: 오류 발생
 def ble_rsp_attclient_read_by_group_type(p):
+	handle = 0
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	found = False
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x00:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+			if b==0x03:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+			else:
+				rx_buffer = []
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			#packet_type, payload_length, packet_class, packet_command = struct.unpack('4B', rx_buffer[:4])
+			rx_payload = rx_buffer[4:]
+			handle, result = struct.unpack('<BH', ''.join(chr(a) for a in rx_payload))
+			result = ''.join('%04X' % result)
+			rx_buffer = []
+			break
+
+	return handle, result
+
+#Read By Handle(API reference p.54)
+#connection: Connection Handle
+#chrhandle: Attribute Handle
+def ble_cmd_attclient_read_by_handle(p, connection, chrhandle):
+	p.write(struct.pack('<5BH', 0x00, 0x03, 0x04, 0x04, connection, chrhandle))
+
+#response of Read By Handle
+def ble_rsp_attclient_read_by_handle(p):
 	handle = 0
 	result = []
 	expected_length = 0
@@ -351,14 +385,64 @@ def ble_evt_attclient_attribute_value_evt_t(p):
 				elif Type == 0x05:
 					print "Attribute type: Value was indicated and the remote device is waiting for a confirmation"
 
-				print "value : %s" % ''.join('%02X' % b for b in value)
+				print "value : %s" % ''.join('%02X' % b for b in reversed(value))
 				print "================================================="
 				rx_buffer = []
 				expected_length = 0
+				
+				#검색 시에는 주석 처리 할 것
+				isItOver = True
+				return isItOver
+				#########################
+
 			elif rx_buffer[3] == 0x01:
 				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
 				rx_payload = rx_buffer[4:]
 				connection, result, chrhandle = struct.unpack('<BHH', ''.join(chr(b) for b in rx_payload[:5]))
+				print "connection: %d" % connection
+				print "result: %04X" % result
+				print "chrhandle: %04X" % chrhandle
+				print "================================================="
+				isItOver = True
+				return isItOver
+	return isItOver
+
+#Information Found(API reference p.65)
+#connection: connection handle
+#chrhandle: characteristics handlle
+#uuid: characteristics type
+def ble_evt_attclient_find_information_found(p):
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	isItOver = False
+	while(p.inWaiting()):
+
+		b = ord(p.read())
+
+		if expected_length == 0 and b == 0x80:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+		else:
+			rx_buffer.append(b)
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			if rx_buffer[3] == 0x04:
+				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+				rx_payload = rx_buffer[4:]
+				connection, chrhandle, valueLen = struct.unpack('<BHB', ''.join(chr(b) for b in rx_payload[:4]))
+				value = rx_payload[4:]
+				print "connection: %d" % connection
+				print "chrhandle: %04X" % chrhandle
+				print "value : %s" % ''.join('%02X' % b for b in value)
+				print "================================================="
+			elif rx_buffer[3] == 0x01:
+				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+				rx_payload = rx_buffer[4:]
+				connection, result, chrhandle = struct.unpack('<BHH', ''.join(chr(b) for b in rx_payload[:5]))
+				print "End Procedure"
 				print "connection: %d" % connection
 				print "result: %04X" % result
 				print "chrhandle: %04X" % chrhandle

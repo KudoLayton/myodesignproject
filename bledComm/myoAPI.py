@@ -47,6 +47,31 @@ myohw_standard_services = enum(
     DeviceName                    = 0x2a00, #Device name data. Read/write characteristic.
 )
 
+#각 Attribute별 handle
+myohw_chr_handle = enum(
+    ControlService                = 0x0013, # Myo info service
+    MyoInfoCharacteristic         = 0x0015, # Serial number for this Myo and various parameters which
+                                            # are specific to this firmware. Read-only attribute. 
+                                            # See myohw_fw_info_t.
+    FirmwareVersionCharacteristic = 0x0017, # Current firmware version. Read-only characteristic.
+                                            # See myohw_fw_version_t.
+    CommandCharacteristic         = 0x0019, # Issue commands to the Myo. Write-only characteristic.
+                                            # See myohw_command_t.
+
+    ImuDataService                = 0x001A, # IMU service
+    IMUDataCharacteristic         = 0x001C, # See myohw_imu_data_t. Notify-only characteristic.
+    MotionEventCharacteristic     = 0x001F, # Motion event data. Indicate-only characteristic.
+
+    ClassifierService             = 0x0021, # Classifier event service.
+    ClassifierEventCharacteristic = 0x0023, # Classifier event data. Indicate-only characteristic. See myohw_pose_t.
+
+    EmgDataService                = 0x0029, # Raw EMG data service.
+    EmgData0Characteristic        = 0x002B, # Raw EMG data. Notify-only characteristic.
+    EmgData1Characteristic        = 0x002E, # Raw EMG data. Notify-only characteristic.
+    EmgData2Characteristic        = 0x0031, # Raw EMG data. Notify-only characteristic.
+    EmgData3Characteristic        = 0x0034, # Raw EMG data. Notify-only characteristic.
+)
+
 #myo의 서비스에 맞는 UUID 주소로 바꾸어 준다.
 def myo_uuid_trans(service):
     UUID = myoBaseUUID
