@@ -175,7 +175,7 @@ ser.flushOutput()
 
 connected = False
 for i in range(1, 10):
-	print 'Myo (%s) 연결을 시도합니다.' % ':'.join('%02X' % b for b in sender[::-1])
+	print 'Myo (%s) 연결을 요청합니다.' % ':'.join('%02X' % b for b in sender[::-1])
 
 	bledAPI.ble_cmd_gap_connect_direct(ser, sender, address_type, 0x0064, 0x006A, 0x012C, 0x0010)
 	result = []
@@ -186,13 +186,13 @@ for i in range(1, 10):
 
 	if result == "0000":
 		connected = True
-		print 'Myo와의 연결을 성공적으로 수행하였습니다.'
-		print 'connection_handle: %d' % connection_handle
+		print 'Myo와의 연결을 요청하였습니다'
+		print 'preserved connection_handle: %d' % connection_handle
 		print "================================================="
 		break
 	else:
 		print "\n================================================="
-		print "Myo와의 연결을 수행하지 못했습니다."
+		print "Myo와의 연결을 요청하지 못했습니다."
 		print 'connection_handle: %d' % connection_handle
 		print "에러코드: %s" % result
 		print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
@@ -201,41 +201,43 @@ for i in range(1, 10):
 if not connected:
 	exit(2)
 
+getIt = False
+try:
+	while not getIt:
+		getIt, connection_handle = bledAPI.ble_msg_connection_status_evt_t(ser)
+except KeyboardInterrupt:
+	exit(2)
+
 #ser.flushInput()
 #ser.flushOutput()
-#time.sleep(0.01)
 
-bledAPI.ble_cmd_attributes_read_type(ser, 0x0405)
-try:
-	result = []
-	while(len(result) == 0):
-		handle, result, value = bledAPI.ble_rsp_attributes_read_type(ser)
-		time.sleep(0.01)
-	
-	if result == "0000":
-		print 'attribute handle: %04X' % handle
-		print 'UUID: %s' % (''.join('%02X' % b for b in value))
-		print "================================================="
-	else:
-		print "\n================================================="
-		print "Myo의 UUID를 받아오지 못했습니다."
-		print "에러코드: %s" % result
-		print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
-		print "================================================="
-except KeyboardInterrupt:
-	bledAPI.ble_cmd_connection_disconnect(ser, connection_handle)
-	result = bledAPI.ble_rsp_connection_disconnect(ser)
-	#0000: 연결이 정상적으로 해제됨
-	#0186: 이미 연결이 끊겨있음
-	if (result == "0000") or (result == "0186"):
-		print "BLED112의 기존 연결을 끊었습니다."
-	else:
-		print "\n================================================="
-		print "기존 연결을 끊지 못했습니다."
-		print "에러코드: %s" % result
-		print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
-		print "================================================="
-		exit(2)
+uuid = [0x00, 0x28]
+#revMyoUUID = []
+#for b in reversed(myoUUID):
+#	revMyoUUID.append(b)
+print "Myo의 attribute 정보를 요청합니다."
+bledAPI.ble_cmd_attclient_read_by_group_type(ser, connection_handle, 0x0001, 0xFFFF, uuid)
+
+result = []
+while len(result) == 0:
+	handle, result = bledAPI.ble_rsp_attclient_read_by_group_type(ser)
+
+isItOver = False
+while not isItOver:
+	isItOver = bledAPI.ble_msg_attclient_group_found_evt_t(ser)
+
+if result == "0000":
+	connected = True
+	print 'Myo의 Attribute를 성공적으로 받아왔습니다.'
+	print 'connection_handle: %d' % handle
+	print "================================================="
+else:
+	print "\n================================================="
+	print "Myod의 Attribute를 받아오지 못했습니다."
+	print 'connection_handle: %d' % handle
+	print "에러코드: %s" % result
+	print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
+	print "================================================="
 
 ser.flushInput()
 ser.flushOutput()

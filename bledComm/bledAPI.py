@@ -77,6 +77,49 @@ def ble_rsp_system_hello(p):
 ###############################################
 #Attribut Database class(0x02)
 
+#Read(API reference p.70)
+#handle: 읽고자하는 attribute handle
+#offset: 읽고자하는 data의 offset 최대로 읽을 수 있는 data의 양은 32bit이다.
+def ble_cmd_attributes_read(p, handle, offset):
+	p.write(struct.pack('<4BHH', 0x00, 0x04, 0x02, 0x01, handle, offset))
+
+#response of Read
+#handle: 읽고자하는 attribute handle
+#offset: 읽고자하는 data의 offset 최대로 읽을 수 있는 data의 양은 32bit이다.
+#result = 0: 정상 실행
+#result != 0: 에러 발생
+#value: 내용
+def ble_rsp_attributes_read(p):
+	rx_buffer = []
+	expected_length = 0
+	handle = []
+	offset = []
+	result = []
+	value = []
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x00:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+			rx_buffer.append(b)
+			expected_length = 4 + rx_buffer[1]
+
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+			rx_payload = rx_buffer[4:]
+			handle = ''.join('%02X' % a for a in reversed(rx_payload[0:2]))
+			offset = ''.join('%02X' % a for a in reversed(rx_payload[2:4]))
+			result = ''.join('%02X' % a for a in reversed(rx_payload[4:6]))
+			value_len = rx_payload[6]
+			print 'value length: %d'% value_len 
+			value = reversed(rx_payload[7:])
+
+	return handle, offset, result, value
+
 #Read Type(API reference p.72)
 #handle: connect handle
 def ble_cmd_attributes_read_type(p, handle):
@@ -131,6 +174,305 @@ def ble_rsp_connection_disconnect(p):
 	response = p.read(7)
 	return chn_errcode(response, 5)
 
+###############################################
+#Attribute Client class(0x04)
+
+#Find Information(API reference p.47)
+#connection: Connection Handle
+#start: 첫번째 attribute handle
+#end: 마지막 attribute handle
+def ble_cmd_attclient_find_information(p, connection, start, end):
+	p.write(struct.pack('5BHH', 0x00, 0x05, 0x04, 0x03, connection, start, end))
+
+#response of Find Information
+#connection: Connection Handle
+#result == 0: 정상 실행
+#result != 0: 에러 발생
+def ble_rsp_attclient_find_information(p):
+	handle = 0
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	found = False
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x00:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+			if b==0x03:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+			else:
+				rx_buffer = []
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			#packet_type, payload_length, packet_class, packet_command = struct.unpack('4B', rx_buffer[:4])
+			rx_payload = rx_buffer[4:]
+			handle, result = struct.unpack('<BH', ''.join(chr(a) for a in rx_payload))
+			result = ''.join('%04X' % result)
+			rx_buffer = []
+			break
+
+	return handle, result
+
+#Read By Group Type(API reference p.52)
+#connection: Connection Handle
+#start: 첫번째 handle number(처음 부터 찾으려면: 0x0001)
+#end: 마지막 handle number(마지막까지 찾으려면: 0xFFFF)
+#uuid: 찾으려는 Group uuid(Primary service: 0x2800, Secondary service: 0x2801)
+def ble_cmd_attclient_read_by_group_type(p, connection, start, end, uuid):
+	uuidLen = len(uuid)
+	packetLen = 0x06 + len(uuid)
+	packIndex = '<5BHHB%dB' % uuidLen
+	p.write(struct.pack(packIndex, 0x00, packetLen, 0x04, 0x01, connection, start, end, uuidLen, *uuid))
+
+#response of Read By Group Type
+#connection: Connection Handle
+#result = 0: 정상 실행
+#result != 0: 오류 발생
+def ble_rsp_attclient_read_by_group_type(p):
+	handle = 0
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	found = False
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x00:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+			if b==0x03:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+			else:
+				rx_buffer = []
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			#packet_type, payload_length, packet_class, packet_command = struct.unpack('4B', rx_buffer[:4])
+			rx_payload = rx_buffer[4:]
+			handle, result = struct.unpack('<BH', ''.join(chr(a) for a in rx_payload))
+			result = ''.join('%04X' % result)
+			rx_buffer = []
+			break
+
+	return handle, result
+
+#Read By Type(API reference p.56)
+#connection: Connection Handle
+#start: 첫번째 handle number(처음 부터 찾으려면: 0x0001)
+#end: 마지막 handle number(마지막까지 찾으려면: 0xFFFF)
+#uuid: 찾으려는 Attribute type uuid(ex 0x2803: characteristic declaration)
+def ble_cmd_attclient_read_by_type(p, connection, start, end, uuid):
+	uuidLen = len(uuid)
+	packetLen = 0x06 + len(uuid)
+	packIndex = '<5BHHB%dB' % uuidLen
+	p.write(struct.pack(packIndex, 0x00, packetLen, 0x04, 0x02, connection, start, end, uuidLen, *uuid))
+
+#response of Read By Type
+#connection: Connection Handle
+#result = 0: 정상 실행
+#result != 0: 오류 발생
+def ble_rsp_attclient_read_by_type(p):
+	handle = 0
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	found = False
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x00:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+			if b==0x03:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+			else:
+				rx_buffer = []
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			#packet_type, payload_length, packet_class, packet_command = struct.unpack('4B', rx_buffer[:4])
+			rx_payload = rx_buffer[4:]
+			connection, result = struct.unpack('<BH', ''.join(chr(a) for a in rx_payload))
+			result = ''.join('%04X' % result)
+			rx_buffer = []
+			break
+
+	return handle, result
+
+#Attribute Value(API reference p.64)
+#connection: connection handle
+#atthandle: attribute handle
+#type: attribute type(API reference 63)
+#value: Attribute Value
+def ble_evt_attclient_attribute_value_evt_t(p):
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	isItOver = False
+	while(p.inWaiting()):
+
+		b = ord(p.read())
+
+		if expected_length == 0 and b == 0x80:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+		else:
+			rx_buffer.append(b)
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			if rx_buffer[3] == 0x05:
+				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+				rx_payload = rx_buffer[4:]
+				connection, atthandle, Type, valueLen = struct.unpack('<BHBB', ''.join(chr(b) for b in rx_payload[:5]))
+				value = rx_payload[5:]
+				print "connection: %d" % connection
+				print "atthandle: %04X" % atthandle
+				if Type == 0x00:
+					print "Attribute type: Value was read"
+				elif Type == 0x01:
+					print "Attribute type: Value was notified"
+				elif Type == 0x02:
+					print "Attribute type: Value was indicated"
+				elif Type == 0x03:
+					print "Attribute type: Value was read"
+				elif Type == 0x04:
+					print "Attribute type: Value was part of a long attribute"
+				elif Type == 0x05:
+					print "Attribute type: Value was indicated and the remote device is waiting for a confirmation"
+
+				print "value : %s" % ''.join('%02X' % b for b in value)
+				print "================================================="
+				rx_buffer = []
+				expected_length = 0
+			elif rx_buffer[3] == 0x01:
+				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+				rx_payload = rx_buffer[4:]
+				connection, result, chrhandle = struct.unpack('<BHH', ''.join(chr(b) for b in rx_payload[:5]))
+				print "connection: %d" % connection
+				print "result: %04X" % result
+				print "chrhandle: %04X" % chrhandle
+				print "================================================="
+				isItOver = True
+				return isItOver
+	return isItOver
+
+#Group Found(API reference p.66)
+#connection: connection handle
+#start: 첫번째 handle number
+#end: 마지막 handle number
+#uuid: uuid
+def ble_msg_attclient_group_found_evt_t(p):
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	isItOver = False
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x80:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+		else:
+			rx_buffer.append(b)
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			if rx_buffer[3] == 0x02:
+				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+				rx_payload = rx_buffer[4:]
+				connection, start, end, uuidLen = struct.unpack('<BHHB', ''.join(chr(b) for b in rx_payload[:6]))
+				uuid = rx_payload[6:]
+				print "connection: %d" % connection
+				print "start: %04X" % start
+				print "end: %04X" % end
+				print "uuid: %s" % ''.join('%02X' % b for b in uuid)
+				print "================================================="
+				rx_buffer = []
+				expected_length = 0
+			elif rx_buffer[3] == 0x01:
+				packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+				rx_payload = rx_buffer[4:]
+				print 'len: %d' % len(rx_payload[:5])
+				connection, result, chrhandle = struct.unpack('<BHH', ''.join(chr(b) for b in rx_payload[:5]))
+				print "connection: %d" % connection
+				print "result: %04X" % result
+				print "chrhandle: %04X" % chrhandle
+				print "================================================="
+				isItOver = True
+				return isItOver
+	return isItOver
+
+#Status(API reference p.93)
+#connection: Connection handle
+#flags: Connection 상태. connstatus-enum을 참고(p.90)
+#address: 해당 Bluetooth 장치 주소
+#address_type: address type을 말한다 Bluetooth Address Types--gap 참고(p.116)
+#conn_interval: 현재 connection interval (단위: 1.25ms)
+#timeout: 현재 supervision timeout (단위: 1.25ms)
+#latency: 현재 latency
+#bonding: Bonding handle로 그 장치가 연결되어있었을 때 출력되며 그렇지 않다면 0xFF이다.
+def ble_msg_connection_status_evt_t(p):
+	getIt = False
+	connection = 0
+	flags = 0
+	address = []
+	address_type = 0
+	conn_interval = 0
+	timeout = 0
+	latency = 0
+	bonding = 0
+	expected_length = 0
+	rx_buffer = []
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x80:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length:
+			getIt = True
+			packet_type, payload_length, packet_class, packet_command = rx_buffer[:4]
+			rx_payload = rx_buffer[4:]
+			connection, flags = struct.unpack('2B', ''.join(chr(b) for b in rx_payload[0:2]))
+			address = reversed(rx_payload[2:8])
+			address_type, conn_interval, timeout, latency, bonding = struct.unpack('<B3HB', ''.join(chr(b) for b in rx_payload[8:16]))
+			print "connection: %d" % connection
+			if flags & 0x01:
+				print "0 bit flag: connection_connected"
+			if flags & 0x02:
+				print "1 bit flag: connection_encrypted"
+			if flags & 0x04:
+				print "2 bit flag: connection_completed"
+			if flags & 0x08:
+				print "3 bit flag: connection_parameter_change"
+
+			print "address: %s" % ':'.join('%02X' % b for b in address)
+			print "conn_interval: %.2fms" % (1.25 * conn_interval)
+			print "timeout: %dms" % (10 * timeout)
+			print "latency: %d" % latency
+			if bonding == 0xFF:
+				print "No Bonding"
+			else:
+				print "bonding: %d", bonding
+			print "================================================="
+	return getIt, connection
 
 ###############################################
 #Generic Access Profile class(0x06)
