@@ -6,6 +6,7 @@ import serial, struct, time, bledAPI, myoAPI
 baud = 115200
 serialTimeOut = 1
 port = "/dev/ttyACM0"
+portBoard = "/dev/ttyUSB0"
 
 myoUUID = [0x42, 0x48, 0x12, 0x4A, 0x7F, 0x2C, 0x48, 0x47,0xB9, 0xDE, 0x04, 0xA9, 0x01, 0x00, 0x06, 0xD5 ]
 
@@ -33,8 +34,22 @@ except serial.SerialException as e:
 	print "=================================================\n"
 	exit(2)
 
+print "Bord 통신을 위한 Serial Port를 열고 있습니다."
+try:
+	#포트 개설 요청
+	serBoard = serial.Serial(port=portBoard, baudrate=baud, timeout=serialTimeOut)
+
+except serial.SerialException as e:
+	#포트 개설 에러
+	print "\n================================================="
+	print "Port Error"
+	print "=================================================\n"
+	exit(2)
+
 ser.flushInput()
 ser.flushOutput()
+serBoard.flushOutput()
+serBoard.flushInput()
 
 #기존 0번째 handle 연결 해제
 #bledAPI.ble_cmd_system_hello(ser)
@@ -286,6 +301,8 @@ try:
 
 		if result == "0000":
 			if atthandle == 0x001c:
+				boardset = '%dB' % len(value)
+				serBoard.write(struct.pack(boardset, *value))
 				OriW, OriX, OriY, OriZ, AccX, AccY, AccZ, GyrX, GyrY, GyrZ = struct.unpack('10h', ''.join(chr(b) for b in value))
 				OriW = float(OriW) / myoAPI.MYOHW_ORIENTATION_SCALE
 				OriX = float(OriX) / myoAPI.MYOHW_ORIENTATION_SCALE
