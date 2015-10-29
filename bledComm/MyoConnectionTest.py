@@ -208,9 +208,49 @@ try:
 except KeyboardInterrupt:
 	exit(2)
 
+print "Myo IMU의 Subscribe를 요청합니다."
+setIMUSubscribe = [0x01]
+bledAPI.ble_cmd_attclient_write_command(ser, connection_handle, 0x001D, setIMUSubscribe)
+result = []
+while len(result) == 0:
+	handle, result = bledAPI.ble_rsp_attclient_write_command(ser)
+
+if result == "0000":
+	connected = True
+	print "Myo IMU의 Subscribe 요청에 성공하였습니다."
+	print 'connection_handle: %d' % handle
+	print "================================================="
+else:
+	print "\n================================================="
+	print "Myo IMU의 Subscribe 요청에 실패하였습니다"
+	print 'connection_handle: %d' % handle
+	print "에러코드: %s" % result
+	print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
+	print "================================================="
+
+print "Myo Classifier의 Subscribe를 요청합니다."
+setClsSubscribe = [0x02]
+bledAPI.ble_cmd_attclient_write_command(ser, connection_handle, 0x0024, setClsSubscribe)
+result = []
+while len(result) == 0:
+	handle, result = bledAPI.ble_rsp_attclient_write_command(ser)
+
+if result == "0000":
+	connected = True
+	print "Myo Classifier의 Subscribe 요청에 성공하였습니다."
+	print 'connection_handle: %d' % handle
+	print "================================================="
+else:
+	print "\n================================================="
+	print "Myo Classifier의 Subscribe 요청에 실패하였습니다"
+	print 'connection_handle: %d' % handle
+	print "에러코드: %s" % result
+	print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
+	print "================================================="
+
 print "Myo를 IMU모드로 전환 요청합니다"
 
-setIMUMode = [0x01, 0x03, 0x02, 0x03, 0x01]
+setIMUMode = [0x01, 0x03, 0x00, 0x01, 0x01]
 bledAPI.ble_cmd_attclient_write_command(ser, connection_handle, 0x0019, setIMUMode)
 time.sleep(0.1)
 
