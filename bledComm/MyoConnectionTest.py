@@ -208,15 +208,18 @@ try:
 except KeyboardInterrupt:
 	exit(2)
 
-print "Myo를 IMU모드로 전환 요청합니다"
+print "Myo의 Characteristic을 탐색합니다."
 
-setIMUMode = [0x01, 0x03, 0x02, 0x03, 0x01]
-bledAPI.ble_cmd_attclient_write_command(ser, connection_handle, 0x0019, setIMUMode)
-time.sleep(0.1)
+
+bledAPI.ble_cmd_attclient_find_information(ser, connection_handle, 0x0001, 0xFFFF)
 
 result = []
 while len(result) == 0:
-	handle, result = bledAPI.ble_rsp_attclient_write_command(ser)
+	handle, result = bledAPI.ble_rsp_attclient_find_information(ser)
+
+isItOver = False
+while not isItOver:
+	isItOver = bledAPI.ble_evt_attclient_find_information_found(ser)
 
 if result == "0000":
 	connected = True
