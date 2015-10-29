@@ -282,12 +282,25 @@ try:
 
 		isItOver = False
 		while not isItOver:
-			isItOver = bledAPI.ble_evt_attclient_attribute_value_evt_t(ser)
+			isItOver, atthandle, value = bledAPI.ble_evt_attclient_attribute_value_evt_t(ser)
 
 		if result == "0000":
-			print 'Myo의 정보를 성공적으로 받아왔습니다.'
-			print 'connection_handle: %d' % handle
-			print "================================================="
+			if atthandle == 0x001c:
+				OriW, OriX, OriY, OriZ, AccX, AccY, AccZ, GyrX, GyrY, GyrZ = struct.unpack('10h', ''.join(chr(b) for b in value))
+				OriW = float(OriW) / myoAPI.MYOHW_ORIENTATION_SCALE
+				OriX = float(OriX) / myoAPI.MYOHW_ORIENTATION_SCALE
+				OriY = float(OriY) / myoAPI.MYOHW_ORIENTATION_SCALE
+				OriZ = float(OriZ) / myoAPI.MYOHW_ORIENTATION_SCALE
+				AccX = float(AccX) / myoAPI.MYOHW_ACCELEROMETER_SCALE
+				AccY = float(AccY) / myoAPI.MYOHW_ACCELEROMETER_SCALE
+				AccZ = float(AccZ) / myoAPI.MYOHW_ACCELEROMETER_SCALE
+				GyrX = float(GyrX) / myoAPI.MYOHW_GYROSCOPE_SCALE
+				GyrY = float(GyrY) / myoAPI.MYOHW_GYROSCOPE_SCALE
+				GyrZ = float(GyrZ) / myoAPI.MYOHW_GYROSCOPE_SCALE
+				print 'Orientation Vector: (%.2f, %.2f, %.2f, %.2f)' % (OriW, OriX, OriY, OriZ)
+				print 'Acceleration Vector: (%.2f g, %.2f g, %.2f g)' % (AccX, AccY, AccZ)
+				print 'Gyroscope Vector: (%.2f g, %.2f g, %.2f g)' % (GyrX, GyrY, GyrZ)
+				print "================================================="
 		else:
 			print "\n================================================="
 			print "Myod의 정보를 받아오지 못했습니다."

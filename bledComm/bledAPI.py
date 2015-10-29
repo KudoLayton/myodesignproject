@@ -434,6 +434,8 @@ def ble_evt_attclient_attribute_value_evt_t(p):
 	expected_length = 0
 	rx_buffer = []
 	isItOver = False
+	value = []
+	atthandle = 0
 	while(p.inWaiting()):
 
 		b = ord(p.read())
@@ -452,30 +454,12 @@ def ble_evt_attclient_attribute_value_evt_t(p):
 				rx_payload = rx_buffer[4:]
 				connection, atthandle, Type, valueLen = struct.unpack('<BHBB', ''.join(chr(b) for b in rx_payload[:5]))
 				value = rx_payload[5:]
-				print "connection: %d" % connection
-				print "atthandle: %04X" % atthandle
-				if Type == 0x00:
-					print "Attribute type: Value was read"
-				elif Type == 0x01:
-					print "Attribute type: Value was notified"
-				elif Type == 0x02:
-					print "Attribute type: Value was indicated"
-				elif Type == 0x03:
-					print "Attribute type: Value was read"
-				elif Type == 0x04:
-					print "Attribute type: Value was part of a long attribute"
-				elif Type == 0x05:
-					print "Attribute type: Value was indicated and the remote device is waiting for a confirmation"
-
-				print "buffer: %s" % ''.join('%02X' % b for b in rx_buffer)
-				print "value : %s" % ''.join('%02X' % b for b in value)
-				print "================================================="
 				rx_buffer = []
 				expected_length = 0
 				
 				#검색 시에는 주석 처리 할 것
 				isItOver = True
-				return isItOver
+				return isItOver, atthandle, value
 				#########################
 
 			elif rx_buffer[3] == 0x01:
@@ -487,8 +471,8 @@ def ble_evt_attclient_attribute_value_evt_t(p):
 				print "chrhandle: %04X" % chrhandle
 				print "================================================="
 				isItOver = True
-				return isItOver
-	return isItOver
+				return isItOver, atthandle, value
+	return isItOver, atthandle, value
 
 #Information Found(API reference p.65)
 #connection: connection handle

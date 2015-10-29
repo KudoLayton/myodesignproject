@@ -91,3 +91,9 @@ myohw_pose_t = enum (
     myohw_pose_double_tap     = 0x0005,
     myohw_pose_unknown        = 0xffff
 )
+
+###############################################
+#비례 상수
+MYOHW_ORIENTATION_SCALE =  16384.0 # See myohw_imu_data_t::orientation
+MYOHW_ACCELEROMETER_SCALE = 2048.0  # See myohw_imu_data_t::accelerometer
+MYOHW_GYROSCOPE_SCALE =    16.0    # See myohw_imu_data_t::gyroscope
