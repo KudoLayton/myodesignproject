@@ -215,6 +215,44 @@ def ble_rsp_attclient_find_information(p):
 
 	return handle, result
 
+#Indicate Confirm(API reference p.49)
+#connection: connection Handle
+def ble_cmd_attclient_indicate_confirm(p, connection):
+	p.write(struct.pack('<5B', 0x00, 0x01, 0x04, 0x07, connection))
+
+#response of Find Information
+#connection: Connection Handle
+#result == 0: 정상 실행
+#result != 0: 에러 발생
+def ble_rsp_attclient_indicate_confirm(p):
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	found = False
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x00:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+			if b==0x02:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+			else:
+				rx_buffer = []
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			#packet_type, payload_length, packet_class, packet_command = struct.unpack('4B', rx_buffer[:4])
+			rx_payload = rx_buffer[4:]
+			result = struct.unpack('<H', ''.join(chr(a) for a in rx_payload))
+			result = ''.join('%04X' % result)
+			rx_buffer = []
+			break
+
+	return result
+
 #Read By Group Type(API reference p.52)
 #connection: Connection Handle
 #start: 첫번째 handle number(처음 부터 찾으려면: 0x0001)
@@ -342,6 +380,50 @@ def ble_rsp_attclient_read_by_type(p):
 
 	return handle, result
 
+#Write Command(API reference p.61)
+#connection: connection handle
+#atthandle: attribute handle
+#data: Attribute에 쓸 data
+def ble_cmd_attclient_write_command(p, connection, atthandle, data):
+	dataLen = len(data)
+	structform = '<5BHB%dB' % dataLen
+	commandlen = 0x04 + dataLen
+	p.write(struct.pack(structform, 0x00, commandlen, 0x04, 0x06, connection, atthandle, dataLen, *data))
+
+#response of Write Command
+#connection: connection handle
+#result == 0: 정상 실행
+#result != 0: 에러 발생
+def ble_rsp_attclient_write_command(p):
+	handle = 0
+	result = []
+	expected_length = 0
+	rx_buffer = []
+	found = False
+	while(p.inWaiting()):
+		b = ord(p.read())
+		if expected_length == 0 and b == 0x00:
+			rx_buffer.append(b)
+
+		elif len(rx_buffer) == 1 and expected_length == 0:
+			if b==0x03:
+				rx_buffer.append(b)
+				expected_length = 4 + rx_buffer[1]
+			else:
+				rx_buffer = []
+		else:
+			rx_buffer.append(b)
+
+		if len(rx_buffer) == expected_length and expected_length > 0:
+			#packet_type, payload_length, packet_class, packet_command = struct.unpack('4B', rx_buffer[:4])
+			rx_payload = rx_buffer[4:]
+			connection, result = struct.unpack('<BH', ''.join(chr(a) for a in rx_payload))
+			result = ''.join('%04X' % result)
+			rx_buffer = []
+			break
+
+	return handle, result
+
 #Attribute Value(API reference p.64)
 #connection: connection handle
 #atthandle: attribute handle
@@ -385,7 +467,8 @@ def ble_evt_attclient_attribute_value_evt_t(p):
 				elif Type == 0x05:
 					print "Attribute type: Value was indicated and the remote device is waiting for a confirmation"
 
-				print "value : %s" % ''.join('%02X' % b for b in reversed(value))
+				print "buffer: %s" % ''.join('%02X' % b for b in rx_buffer)
+				print "value : %s" % ''.join('%02X' % b for b in value)
 				print "================================================="
 				rx_buffer = []
 				expected_length = 0

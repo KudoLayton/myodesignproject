@@ -208,36 +208,56 @@ try:
 except KeyboardInterrupt:
 	exit(2)
 
-#ser.flushInput()
-#ser.flushOutput()
+print "Myo를 IMU모드로 전환 요청합니다"
 
-uuid = [0x00, 0x28]
-#revMyoUUID = []
-#for b in reversed(myoUUID):
-#	revMyoUUID.append(b)
-print "Myo의 정보를 요청합니다."
-bledAPI.ble_cmd_attclient_read_by_handle(ser, connection_handle, 0x0017)
+setIMUMode = [0x01, 0x03, 0x02, 0x03, 0x01]
+bledAPI.ble_cmd_attclient_write_command(ser, connection_handle, 0x0019, setIMUMode)
+time.sleep(0.1)
 
 result = []
 while len(result) == 0:
-	handle, result = bledAPI.ble_rsp_attclient_read_by_handle(ser)
-
-isItOver = False
-while not isItOver:
-	isItOver = bledAPI.ble_evt_attclient_attribute_value_evt_t(ser)
+	handle, result = bledAPI.ble_rsp_attclient_write_command(ser)
 
 if result == "0000":
 	connected = True
-	print 'Myo의 정보를 성공적으로 받아왔습니다.'
+	print "Myo를 IMU모드로 전환 요청에 성공하였습니다."
 	print 'connection_handle: %d' % handle
 	print "================================================="
 else:
 	print "\n================================================="
-	print "Myod의 Attribute를 받아오지 못했습니다."
+	print "Myo의 IMU모드로 전환 요청에 실패하였습니다"
 	print 'connection_handle: %d' % handle
 	print "에러코드: %s" % result
 	print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
 	print "================================================="
+
+try:
+	while True:
+		#print "Myo의 정보를 요청합니다."
+		#bledAPI.ble_cmd_attclient_read_by_handle(ser, connection_handle, 0x002B)
+
+		#result = []
+		#while len(result) == 0:
+		#	handle, result = bledAPI.ble_rsp_attclient_read_by_handle(ser)
+
+		isItOver = False
+		while not isItOver:
+			isItOver = bledAPI.ble_evt_attclient_attribute_value_evt_t(ser)
+
+		if result == "0000":
+			print 'Myo의 정보를 성공적으로 받아왔습니다.'
+			print 'connection_handle: %d' % handle
+			print "================================================="
+		else:
+			print "\n================================================="
+			print "Myod의 정보를 받아오지 못했습니다."
+			print 'connection_handle: %d' % handle
+			print "에러코드: %s" % result
+			print "에러코드는 Bluegiga Blutooth Smart Software API reference를 참조하십시오"
+			print "================================================="
+		time.sleep(0.02)
+except KeyboardInterrupt:
+	print "KeyboardInterrupt"
 
 ser.flushInput()
 ser.flushOutput()
