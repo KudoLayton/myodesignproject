@@ -71,8 +71,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\yys8646\Desktop\Myo_yys\myodesignproject\MyoWin\MyoWin\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\yys8646\Desktop\Myo_yys\myodesignproject\MyoWin\MyoWin\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>include;$(IncludePath)</IncludePath>
+    <LibraryPath>lib;$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
