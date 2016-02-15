@@ -7,7 +7,7 @@
 #include "DataCollector.h"
 
 #define SERIAL_TESTING
-#define PORT_NAME L"COM3"
+#define PORT_NAME L"COM4"
 
 int main(int argc, char** argv)
 {
