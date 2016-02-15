@@ -11,7 +11,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	CSerialPort com1;
 	 
-	com1.Open ("\\\\.\\COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY);
+//	com1.Open ("\\\\.\\COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY);
 	com1.SetTimeout (10, 10, 1);
 
 	int n;
@@ -22,7 +22,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		scanf ("%s", buff);
 		n = strlen(buff);
 	 
-		com1.Write (buff, n);
+//		com1.Write (buff, n);
 
 		Sleep (100);
 		

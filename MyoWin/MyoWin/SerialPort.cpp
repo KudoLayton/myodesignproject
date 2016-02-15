@@ -7,6 +7,9 @@
 //#include <afx.h>
 #include <windows.h>
 
+#include <locale.h>                                            //헤더를 추가
+#include <iostream>
+
 
 CSerialPort::CSerialPort()
 {
@@ -18,15 +21,19 @@ CSerialPort::~CSerialPort()
 	Close ();
 }
 
-bool CSerialPort::Open (const char *portName, long baudRate, char dataBits, char parity, char stopBits)
+bool CSerialPort::Open (const TCHAR *portName, long baudRate, char dataBits, char parity, char stopBits)
 {
 	if (_hSerial != INVALID_HANDLE_VALUE) {
+		std::wcout << "ERROR: Open(): " << portName << baudRate << "Port is already opened\n"; 
 //		TRACE ("ERROR: Open(): %s, %d, Port is already opened\n", portName, baudRate);
 		return false;
 	}
 
-	_hSerial = CreateFile ( (LPCWSTR )portName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
+	_hSerial = CreateFile((LPCWSTR)portName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
+//	_hSerial = CreateFile((LPCWSTR)portName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
 	if (_hSerial == INVALID_HANDLE_VALUE){
+		std::wcout << "ERROR: CreateFile(): " << portName << baudRate;
+		GetLastErrorString();
 //		TRACE ("ERROR: CreateFile(): %s, %d, %s", portName, baudRate, GetLastErrorString());
 		return false;
 	}
@@ -38,6 +45,8 @@ bool CSerialPort::Open (const char *portName, long baudRate, char dataBits, char
 	
 	if (!GetCommState (_hSerial, &dcbSerialParams)) {
 //		TRACE ("ERROR: GetCommState (): %s", GetLastErrorString());
+		std::wcout << "ERROR: GetCommState (): ";
+		GetLastErrorString();
 		return false;
 	}
 
@@ -62,6 +71,8 @@ bool CSerialPort::Open (const char *portName, long baudRate, char dataBits, char
 	
 	if (!SetCommState(_hSerial, &dcbSerialParams)) {
 //		TRACE ("ERROR: SetCommState(): %s", GetLastErrorString());
+		std::wcout << "ERROR: SetCommState(): ";
+		GetLastErrorString();
 		return false;
 	}
 
@@ -85,6 +96,8 @@ int CSerialPort::Read(char *data, int maxDataLength)
 
 	if (!ReadFile (_hSerial, data, maxDataLength, &readBytes, NULL)){
 //		TRACE ("ERROR: ReadFile(): %s", GetLastErrorString());
+		std::wcout << "ERROR: ReadFile(): ";
+		GetLastErrorString();
 		return -1;
 	}
 	return readBytes;
@@ -93,8 +106,13 @@ int CSerialPort::Read(char *data, int maxDataLength)
 int CSerialPort::Write(const char *data, int dataLength)
 {
 	DWORD writtenBytes = 0;
-
-	if (!WriteFile (_hSerial, data, dataLength, &writtenBytes, NULL)) {
+	BOOL test;
+	test = WriteFile(_hSerial, data, dataLength, &writtenBytes, NULL);
+	if (!test) {
+//	if (!WriteFile (_hSerial, data, dataLength, &writtenBytes, NULL)) {
+		std::cout << "ERROR: WriteFile(): ";
+		GetLastErrorString();
+//		printf ("ERROR: WriteFile(): %s", GetLastErrorString());
 //		TRACE ("ERROR: WriteFile(): %s", GetLastErrorString());
 		return -1;
 	}
@@ -107,10 +125,14 @@ void CSerialPort::Flush()
 	COMSTAT comStat;
 
 	if (!ClearCommError (_hSerial, &comError, &comStat)) {
+		std::wcout << "ERROR: ClearCommError(): ";
+		GetLastErrorString();
 //		TRACE ("ERROR: ClearCommError(): %s", GetLastErrorString());
 		return;
 	}
 	if (!PurgeComm (_hSerial, PURGE_TXABORT|PURGE_RXABORT|PURGE_TXCLEAR|PURGE_RXCLEAR)) {
+		std::wcout << "ERROR: PurgeComm(): ";
+		GetLastErrorString();
 //		TRACE ("ERROR: PurgeComm(): %s", GetLastErrorString());
 		return;
 	}
@@ -121,6 +143,8 @@ bool CSerialPort::SetTimeout(int readTimeout, int writeTimeout, int readInterval
 	COMMTIMEOUTS commTimeout;
 
 	if (!GetCommTimeouts (_hSerial, &commTimeout)) {
+		std::wcout << "ERROR: GetCommTimeouts(): ";
+		GetLastErrorString();
 //		TRACE ("ERROR: GetCommTimeouts(): %s", GetLastErrorString());
 		return false;
 	}
@@ -133,6 +157,8 @@ bool CSerialPort::SetTimeout(int readTimeout, int writeTimeout, int readInterval
 
 	if (!SetCommTimeouts (_hSerial, &commTimeout)) {
 //		TRACE ("ERROR: SetCommTimeouts(): %s", GetLastErrorString());
+		std::wcout << "ERROR: SetCommTimeouts(): ";
+		GetLastErrorString();
 		return false;
 	}
 	return true;
@@ -145,17 +171,20 @@ int CSerialPort::CountReadBuff()
 
 	if (!ClearCommError(_hSerial, &comError, &comStat)) {
 //		TRACE ("ERROR: ClearCommError(): %s", GetLastErrorString());
+		std::wcout << "ERROR: ClearCommError(): ";
+		GetLastErrorString();
 		return -1;
 	}
 	return comStat.cbInQue;
 }
 
-const char *CSerialPort::GetLastErrorString()
+const TCHAR *CSerialPort::GetLastErrorString()
 {
-	static char lastError[1024];
+	static TCHAR lastError[1024];
 	
 	FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)lastError, 1024, NULL);
-
+		NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), lastError, 1024, NULL);
+	std::wcout.imbue(std::locale("korean"));
+	std::wcout << (LPCWSTR)lastError;
 	return lastError;
 }

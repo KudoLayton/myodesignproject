@@ -7,10 +7,12 @@
 #include "DataCollector.h"
 
 #define SERIAL_TESTING
-#define PORT_NAME "\\\\.\\COM3"
+#define PORT_NAME L"COM3"
 
 int main(int argc, char** argv)
 {
+//	setlocale(LC_ALL, "");      //지역화 설정을 전역적으로 적용
+
 	CSerialPort port;
 	port.Open(PORT_NAME, CBR_9600, 8, ONESTOPBIT, NOPARITY);
 	port.SetTimeout(10, 10, 1);
@@ -19,8 +21,10 @@ int main(int argc, char** argv)
 	char buff[1024];
 
 	while (1) {
-		printf("\nWRITE: ");
-		scanf("%s", buff);
+		std::cout << "\nWRITE: ";
+		std::cin >> buff;
+//		printf("\nWRITE: ");
+//		scanf_s("%s", buff, sizeof(buff));
 		n = strlen(buff);
 
 		port.Write(buff, n);
@@ -29,7 +33,7 @@ int main(int argc, char** argv)
 
 		n = port.Read(buff, 1024);
 
-		printf("READ: %s (%d)", buff, n);
+		std::wcout << "READ: " << buff << " (" << n << ')';
 	};
 	/*
 	CSerialPort com1;

@@ -8,7 +8,7 @@ public:
 	CSerialPort ();
 	~CSerialPort ();
 
-	bool Open (const char *portName, long baudRate, char dataBits, char parity, char stopBits);
+	bool Open (const TCHAR *portName, long baudRate, char dataBits, char parity, char stopBits);
 	void Close ();
 
 	int Read (char *data, int maxDataLength);
@@ -22,5 +22,5 @@ public:
 private:
 	HANDLE _hSerial; 
 
-	const char *GetLastErrorString();
+	const TCHAR *GetLastErrorString();
 };
