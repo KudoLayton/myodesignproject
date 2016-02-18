@@ -11,7 +11,7 @@
 #include "DataCollector.h"
 
 DataCollector::DataCollector()
-	: currentPose()
+	: referenceQuat(0,0,0,1), pos(-1,0,0), currentPose()
 	//		: onArm(false), isUnlocked(false), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
 {
 }
@@ -26,23 +26,35 @@ void DataCollector::onOrientationData(myo::Myo* myo, uint64_t timestamp, const m
 	using std::max;
 	using std::min;
 
-	forward = myo::rotate(quat, myo::Vector3<float>(-1, 0, 0));
-	if (isupdateReference(forward.z()))
+	Quat = quat;
+
+	if (isupdateReference(pos.z()))
 	{
+		float angle = atan2(2.0f * (quat.w() * quat.z() + quat.x() * quat.y()),
+			1.0f - 2.0f * (quat.y() * quat.y() + quat.z() * quat.z()));
+		referenceQuat = Quat.fromAxisAngle(myo::Vector3<float>(0, 0, 1), angle);
+		/*
+		float angle = atan2(z_ref.y(), z_ref.x());
+
 		myo::Quaternion<float> _antiYaw = myo::rotate(myo::Vector3<float>(1, 0, 0),
-			myo::Vector3<float>(forward.x(), forward.y(), 0));
+			myo::Vector3<float>(z_ref.x(), z_ref.y(), 0));
 		//			referenceQuat = referenceQuat.conjugate();
 		//			referenceQuat = quat.conjugate();
 		referenceQuat = _antiYaw;
 		referenceQuat = referenceQuat.conjugate();
+		*/
 	}
 
-	Quat = quat;
-	Quat = referenceQuat * Quat;
-	Quat = Quat.normalized();
+//	Quat = referenceQuat * quat;
+//	Quat = Quat.normalized();
 
-	myo::Vector3<float> pos = myo::rotate(Quat, myo::Vector3<float>(-1, 0, 0));
-	pos_w = myo::Vector3<int>(10 + 10 * pos.x(), 10 + 10 * pos.y(), 10 + 10 * pos.z());
+//	pos = myo::rotate(Quat, myo::Vector3<float>(-1, 0, 0));
+
+//	Quat = referenceQuat * Quat * referenceQuat.conjugate();
+//	Quat.normalized();
+	pos = myo::rotate(Quat, myo::Vector3<float>(-1, 0, 0));
+	pos = myo::rotate(referenceQuat.conjugate(), pos);
+	pos = myo::rotate(myo::Quaternion<float>(0, 0, 1, 0), pos);
 }
 
 // onPose() is called whenever the Myo detects that the person wearing it has changed their pose, for example,
@@ -84,9 +96,10 @@ bool DataCollector::isupdateReference(float z)
 // We define this function to print the current values that were updated by the on...() functions above.
 void DataCollector::print()
 {
-	int forward_w_x = 10 + forward.x() * 10.0f;
-	int forward_w_y = 10 + forward.y() * 10.0f;
-	int forward_w_z = 10 + forward.z() * 10.0f;
+//	int z_ref_w = 10 + z_ref.z() * 10.0f;
+
+	myo::Vector3<int> pos_w = myo::Vector3<int>(10 + 10 * pos.x(), 10 + 10 * pos.y(), 10 + 10 * pos.z());
+	myo::Vector3<int> pos_w = myo::Vector3<int>(10 + 10 * pos.x(), 10 + 10 * pos.y(), 10 + 10 * pos.z());
 
 	int quat_w_w = 10 + Quat.w() * 10.0f;
 	int quat_w_x = 10 + Quat.x() * 10.0f;
@@ -95,11 +108,39 @@ void DataCollector::print()
 
 	std::cout << '\r';
 	// Clear the current line
-	if (isupdateReference(forward.z()))
+
+	myo::Quaternion<float> toOrigin = myo::rotate(pos, myo::Vector3<float>(-1, 0, 0));
+	toOrigin = toOrigin * Quat * toOrigin.conjugate();
+	toOrigin = toOrigin.normalized();
+	myo::Quaternion<int> rotate = myo::Quaternion<int>(10 + toOrigin.x() * 10, 10 + toOrigin.y() * 10, 10 + toOrigin.z() * 10, 10 + toOrigin.w() * 10);
+	/*
+	int rotate = toOrigin.w() * 10;
+	myo::Quaternion<float> Origin = myo::Quaternion<float>(z_ref.x(), z_ref.y(), z_ref.z(), 0);
+	Origin = Quat.conjugate() * Origin * Quat;
+	Origin = Origin.normalized();
+	myo::Quaternion<int> rotate = myo::Quaternion<int>(10 + Origin.x() * 10, 10 + Origin.y() * 10, 10 + Origin.z() * 10, 10 + Origin.w() * 10);
+	*/
+
+	std::cout
+		<< '[' << std::string(pos_w.x(), '*') << std::string(20 - pos_w.x(), ' ') << ']'
+		<< '[' << std::string(pos_w.y(), '*') << std::string(20 - pos_w.y(), ' ') << ']'
+		<< '[' << std::string(pos_w.z(), '*') << std::string(20 - pos_w.z(), ' ') << ']'
+	/*
+	std::cout
+		<< '[' << std::string(rotate.x(), '*') << std::string(20 - rotate.x(), ' ') << ']'
+		<< '[' << std::string(rotate.y(), '*') << std::string(20 - rotate.y(), ' ') << ']'
+		<< '[' << std::string(rotate.z(), '*') << std::string(20 - rotate.z(), ' ') << ']'
+	*/
+		<< '[' << std::string(rotate.w(), '*') << std::string(20 - rotate.w(), ' ') << ']';
+//	std::cout << std::atan2(z_ref.y(), z_ref.x()) / M_PI;
+
+
+	/*
+	if (isupdateReference(z_ref.z()))
 		std::cout << "_update";
 	else
 		std::cout << "!update";
-
+	*/
 
 
 
@@ -112,34 +153,43 @@ void DataCollector::print()
 	<< '[' << std::string(roll_w, '*') << std::string(18 - roll_w, ' ') << ']'
 	<< '[' << std::string(pitch_w, '*') << std::string(18 - pitch_w, ' ') << ']'
 	<< '[' << std::string(yaw_w, '*') << std::string(18 - yaw_w, ' ') << ']';
-	*/		if (17 < forward_w_z)
-	std::cout << '[' << "   up   " << ']';
-	else if (forward_w_z < 3)
+	*/
+	/*
+	if (17 < z_ref_w.z())
+		std::cout << '[' << "   up   " << ']';
+	else if (z_ref_w.z() < 3)
 		std::cout << '[' << "  down  " << ']';
 	else
 		std::cout << '[' << " unknown" << ']';
-
+	*/
 
 	//		std::cout << std::endl;
 
-	/*		std::cout
+	/*		
+	std::cout
 	<< '[' << std::string(quat_w_w, '*') << std::string(20 - quat_w_w, ' ') << ']'
 	<< '[' << std::string(quat_w_x, '*') << std::string(20 - quat_w_x, ' ') << ']'
 	<< '[' << std::string(quat_w_y, '*') << std::string(20 - quat_w_y, ' ') << ']'
 	<< '[' << std::string(quat_w_z, '*') << std::string(20 - quat_w_z, ' ') << ']';
 	*/
-	/*		std::cout
+	/*
+	std::cout
 	<< '[' << std::string(gyro_w_x, '*') << std::string(20 - gyro_w_x, ' ') << ']'
 	<< '[' << std::string(gyro_w_y, '*') << std::string(20 - gyro_w_y, ' ') << ']'
 	<< '[' << std::string(gyro_w_z, '*') << std::string(20 - gyro_w_z, ' ') << ']';
-	*//*		std::cout
+	*/
+	/*
+	std::cout
 	<< '[' << std::string(forward_w_x, '*') << std::string(20 - forward_w_x, ' ') << ']'
 	<< '[' << std::string(forward_w_y, '*') << std::string(20 - forward_w_y, ' ') << ']'
 	<< '[' << std::string(forward_w_z, '*') << std::string(20 - forward_w_z, ' ') << ']';
-	*/		std::cout
+	*/
+	/*	
+	std::cout
 		<< '[' << std::string(pos_w.x(), '*') << std::string(20 - pos_w.x(), ' ') << ']'
 		<< '[' << std::string(pos_w.y(), '*') << std::string(20 - pos_w.y(), ' ') << ']'
 		<< '[' << std::string(pos_w.z(), '*') << std::string(20 - pos_w.z(), ' ') << ']';
+	*/
 
 	//		std::cout << forward.x() << forward.y() << forward.z();
 	/*

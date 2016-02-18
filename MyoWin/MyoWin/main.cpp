@@ -6,12 +6,13 @@
 // Myo Connect
 #include "DataCollector.h"
 
-#define SERIAL_TESTING
-#define PORT_NAME L"COM4"
+#define MOTION_ADDING
+#define PORT_NAME L"COM3"
 
 int main(int argc, char** argv)
 {
-//	setlocale(LC_ALL, "");      //지역화 설정을 전역적으로 적용
+#ifndef MOTION_ADDING
+	//	setlocale(LC_ALL, "");      //지역화 설정을 전역적으로 적용
 
 	CSerialPort port;
 	port.Open(PORT_NAME, CBR_9600, 8, ONESTOPBIT, NOPARITY);
@@ -59,9 +60,9 @@ int main(int argc, char** argv)
 	*/
 
 	return 0;
+#endif
 
 
-#ifndef SERIAL_TESTING
 
 	// We catch any exceptions that might occur below -- see the catch statement for more details.
 	try {
@@ -69,6 +70,7 @@ int main(int argc, char** argv)
 		// First, we create a Hub with our application identifier. Be sure not to use the com.example namespace when
 		// publishing your application. The Hub provides access to one or more Myos.
 		myo::Hub hub("com.example.hello-myo");
+//		myo::Hub hub("myodesignproject");
 		hub.setLockingPolicy(myo::Hub::lockingPolicyNone);
 
 		std::cout << "Attempting to find a Myo..." << std::endl;
@@ -112,5 +114,4 @@ int main(int argc, char** argv)
 		std::cin.ignore();
 		return 1;
 	}
-#endif
 }
