@@ -6,12 +6,13 @@
 // Myo Connect
 #include "DataCollector.h"
 
-#define MOTION_ADDING
+#define SERIAL_COMM			// define if serial communication mode
+//#define MYO_COMMAND		// define if myo command mode
 #define PORT_NAME L"COM3"
 
 int main(int argc, char** argv)
 {
-#ifndef MOTION_ADDING
+#ifdef SERIAL_COMM
 	//	setlocale(LC_ALL, "");      //지역화 설정을 전역적으로 적용
 
 	CSerialPort port;
@@ -24,14 +25,15 @@ int main(int argc, char** argv)
 	while (1) {
 		std::cout << "\nWRITE: ";
 		std::cin >> buff;
-//		printf("\nWRITE: ");
-//		scanf_s("%s", buff, sizeof(buff));
+
 		n = strlen(buff);
 
+		// write from port
 		port.Write(buff, n);
 
 		Sleep(100);
 
+		// read from port
 		n = port.Read(buff, 1024);
 
 		std::wcout << "READ: " << buff << " (" << n << ')';
@@ -62,7 +64,7 @@ int main(int argc, char** argv)
 	return 0;
 #endif
 
-
+#ifdef MYO_COMMAND
 
 	// We catch any exceptions that might occur below -- see the catch statement for more details.
 	try {
@@ -114,4 +116,7 @@ int main(int argc, char** argv)
 		std::cin.ignore();
 		return 1;
 	}
+
+#endif
+
 }

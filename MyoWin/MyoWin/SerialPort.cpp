@@ -95,7 +95,6 @@ int CSerialPort::Read(char *data, int maxDataLength)
 	DWORD readBytes = 0;
 
 	if (!ReadFile (_hSerial, data, maxDataLength, &readBytes, NULL)){
-//		TRACE ("ERROR: ReadFile(): %s", GetLastErrorString());
 		std::wcout << "ERROR: ReadFile(): ";
 		GetLastErrorString();
 		return -1;
@@ -107,13 +106,11 @@ int CSerialPort::Write(const char *data, int dataLength)
 {
 	DWORD writtenBytes = 0;
 	BOOL test;
-	test = WriteFile(_hSerial, data, dataLength, &writtenBytes, NULL);
-	if (!test) {
-//	if (!WriteFile (_hSerial, data, dataLength, &writtenBytes, NULL)) {
+
+	if (!WriteFile (_hSerial, data, dataLength, &writtenBytes, NULL)) {
 		std::cout << "ERROR: WriteFile(): ";
 		GetLastErrorString();
-//		printf ("ERROR: WriteFile(): %s", GetLastErrorString());
-//		TRACE ("ERROR: WriteFile(): %s", GetLastErrorString());
+
 		return -1;
 	}
 	return writtenBytes;
