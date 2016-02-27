@@ -1,3 +1,7 @@
+// Forked by daum blog: Open Robotics
+// http://blog.daum.net/_blog/BlogTypeView.do?blogid=0No3D&articleno=52&categoryId=12&regdt=20100413111749
+// some modification added.
+
 #include "StdAfx.h"
 
 #include "SerialPort.h"

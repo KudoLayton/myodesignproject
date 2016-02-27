@@ -6,8 +6,8 @@
 // Myo Connect
 #include "DataCollector.h"
 
-#define SERIAL_COMM			// define if serial communication mode
-//#define MYO_COMMAND		// define if myo command mode
+//#define SERIAL_COMM			// define if serial communication mode
+#define MYO_COMMAND				// define if myo command mode
 #define PORT_NAME L"COM3"
 
 int main(int argc, char** argv)

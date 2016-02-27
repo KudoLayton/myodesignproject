@@ -18,9 +18,14 @@ public:
 	// These values are set by onOrientationData() and onPose() above.
 	myo::Quaternion<float> referenceQuat;
 	myo::Quaternion<float> Quat;
+	float referenceRoll;
 
 //	myo::Vector3<float> z_ref;
 	myo::Vector3<float> pos;// = new myo::Vector3<float>(0.0, 0.0, 0.0);
 
 	myo::Pose currentPose;
+
+	enum { Up, Down, Mid } Ez;
+	float theta;
+	float speed;
 };
