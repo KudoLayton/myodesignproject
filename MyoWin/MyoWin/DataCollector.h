@@ -27,5 +27,5 @@ public:
 
 	enum { Up, Down, Mid } Ez;
 	float theta;
-	int speed;
+	float speed;
 };
