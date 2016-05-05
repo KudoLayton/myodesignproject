@@ -32,7 +32,7 @@ void DataCollector::onOrientationData(myo::Myo* myo, uint64_t timestamp, const m
 		Ez = Down;
 //	else if ( -30 < z_theta && z_theta < 30 ){
 	else {
-		if (Ez == Down){
+		if (Ez != Mid){
 			float angle = atan2(2.0f * (quat.w() * quat.z() + quat.x() * quat.y()),
 				1.0f - 2.0f * (quat.y() * quat.y() + quat.z() * quat.z()));
 			referenceQuat = Quat.fromAxisAngle(myo::Vector3<float>(0, 0, 1), angle);
@@ -40,6 +40,7 @@ void DataCollector::onOrientationData(myo::Myo* myo, uint64_t timestamp, const m
 			referenceRoll = atan2(2.0f * (quat.w() * quat.x() + quat.y() * quat.z()),
 				1.0f - 2.0f * (quat.x() * quat.x() + quat.y() * quat.y()));
 			referenceRoll *= 10;
+			referenceRoll += speed;
 		}
 		Ez = Mid;
 	}
@@ -64,6 +65,7 @@ void DataCollector::onOrientationData(myo::Myo* myo, uint64_t timestamp, const m
 			1.0f - 2.0f * (quat.x() * quat.x() + quat.y() * quat.y()));
 		roll *= 10;
 		speed = (int) referenceRoll - roll;
+		speed = speed < 0 ? 0 : (speed > 20 ? 20 : speed);
 	}
 
 }
@@ -120,20 +122,24 @@ void DataCollector::print()
 	if (-15 < theta && theta < 15)
 		speed = roll;
 		*/
+	
+	std::cout << (Ez == Up ? "Set" : (Ez == Down ? "Stop" : "Change"));
+	
+/*	if (Ez != Down) {
+		std::cout << '\t' << "angle: " << (int)theta << '\t';
+		std::cout << "speed: "
+//			<< '[' << std::string(1, '*') << std::string(20 - 1, ' ') << ']';
+			<< '[' << std::string(speed, '*') << std::string(20 - speed, ' ') << ']';
+	}
+	else std::cout << "\t\t\t\t\t\t\t\t\t";
+*/	// Print out the orientation. Orientation data is always available, even if no arm is currently recognized.
 
-	std::cout << (Ez == Up ? "Up" : (Ez == Down ? "Down" : "Mid"));
-
-	if (Ez == Mid)
-		std::cout << '\t' << (int) theta << '\t' << (int) speed << '\t';
-	else std::cout << "\t\t\t\t";
-	// Print out the orientation. Orientation data is always available, even if no arm is currently recognized.
-/*
 	std::cout
-	<< '[' << std::string(pos_w.x(), '*') << std::string(20 - pos_w.x(), ' ') << ']'
-	<< '[' << std::string(pos_w.y(), '*') << std::string(20 - pos_w.y(), ' ') << ']'
-	<< '[' << std::string(pos_w.z(), '*') << std::string(20 - pos_w.z(), ' ') << ']'
-	<< '[' << std::string(roll, '*') << std::string(20 - roll, ' ') << ']';
-*/
+		<< '[' << std::string(pos_w.x(), '*') << std::string(20 - pos_w.x(), ' ') << ']'
+		<< '[' << std::string(pos_w.y(), '*') << std::string(20 - pos_w.y(), ' ') << ']'
+		<< '[' << std::string(pos_w.z(), '*') << std::string(20 - pos_w.z(), ' ') << ']';
+//	<< '[' << std::string(roll, '*') << std::string(20 - roll, ' ') << ']';
+
 
 	/*		if (onArm) {
 	// Print out the lock state, the currently recognized pose, and which arm Myo is being worn on.
