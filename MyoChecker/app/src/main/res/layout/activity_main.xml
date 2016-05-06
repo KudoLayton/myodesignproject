@@ -39,7 +39,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="80"
                 android:layout_height="wrap_content"
-                android:text="http://192.168.0.2:8080/test"
+                android:text="192.168.0.2"
                 android:id="@+id/ipText" />
 
             <Button
@@ -53,13 +53,13 @@
         <ScrollView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/sw0" >
+            android:id="@+id/scroll" >
 
             <Switch
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Arg0"
-                android:id="@+id/switch1"
+                android:id="@+id/Arg0"
                 android:textStyle="bold"
                 android:textSize="20dp" />
         </ScrollView>

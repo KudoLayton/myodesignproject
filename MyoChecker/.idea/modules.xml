@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/MyoChecker.iml" filepath="$PROJECT_DIR$/MyoChecker.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/protobuf-java-3.0.0-beta-2/protobuf-java-3.0.0-beta-2.iml" filepath="$PROJECT_DIR$/protobuf-java-3.0.0-beta-2/protobuf-java-3.0.0-beta-2.iml" />
     </modules>
   </component>
 </project>

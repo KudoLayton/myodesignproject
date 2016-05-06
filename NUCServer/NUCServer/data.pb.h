@@ -94,18 +94,46 @@ class Sensor : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional float temperature = 1;
-  void clear_temperature();
-  static const int kTemperatureFieldNumber = 1;
-  float temperature() const;
-  void set_temperature(float value);
+  // optional float arg0 = 1;
+  void clear_arg0();
+  static const int kArg0FieldNumber = 1;
+  float arg0() const;
+  void set_arg0(float value);
+
+  // optional float arg1 = 2;
+  void clear_arg1();
+  static const int kArg1FieldNumber = 2;
+  float arg1() const;
+  void set_arg1(float value);
+
+  // optional float arg2 = 3;
+  void clear_arg2();
+  static const int kArg2FieldNumber = 3;
+  float arg2() const;
+  void set_arg2(float value);
+
+  // optional float arg3 = 4;
+  void clear_arg3();
+  static const int kArg3FieldNumber = 4;
+  float arg3() const;
+  void set_arg3(float value);
+
+  // optional float arg4 = 5;
+  void clear_arg4();
+  static const int kArg4FieldNumber = 5;
+  float arg4() const;
+  void set_arg4(float value);
 
   // @@protoc_insertion_point(class_scope:Sensor)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   bool _is_default_instance_;
-  float temperature_;
+  float arg0_;
+  float arg1_;
+  float arg2_;
+  float arg3_;
+  float arg4_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_data_2eproto();
   friend void protobuf_AssignDesc_data_2eproto();
@@ -122,18 +150,74 @@ class Sensor : public ::google::protobuf::Message {
 #if !PROTOBUF_INLINE_NOT_IN_HEADERS
 // Sensor
 
-// optional float temperature = 1;
-inline void Sensor::clear_temperature() {
-  temperature_ = 0;
+// optional float arg0 = 1;
+inline void Sensor::clear_arg0() {
+  arg0_ = 0;
 }
-inline float Sensor::temperature() const {
-  // @@protoc_insertion_point(field_get:Sensor.temperature)
-  return temperature_;
+inline float Sensor::arg0() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg0)
+  return arg0_;
 }
-inline void Sensor::set_temperature(float value) {
+inline void Sensor::set_arg0(float value) {
   
-  temperature_ = value;
-  // @@protoc_insertion_point(field_set:Sensor.temperature)
+  arg0_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg0)
+}
+
+// optional float arg1 = 2;
+inline void Sensor::clear_arg1() {
+  arg1_ = 0;
+}
+inline float Sensor::arg1() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg1)
+  return arg1_;
+}
+inline void Sensor::set_arg1(float value) {
+  
+  arg1_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg1)
+}
+
+// optional float arg2 = 3;
+inline void Sensor::clear_arg2() {
+  arg2_ = 0;
+}
+inline float Sensor::arg2() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg2)
+  return arg2_;
+}
+inline void Sensor::set_arg2(float value) {
+  
+  arg2_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg2)
+}
+
+// optional float arg3 = 4;
+inline void Sensor::clear_arg3() {
+  arg3_ = 0;
+}
+inline float Sensor::arg3() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg3)
+  return arg3_;
+}
+inline void Sensor::set_arg3(float value) {
+  
+  arg3_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg3)
+}
+
+// optional float arg4 = 5;
+inline void Sensor::clear_arg4() {
+  arg4_ = 0;
+}
+inline float Sensor::arg4() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg4)
+  return arg4_;
+}
+inline void Sensor::set_arg4(float value) {
+  
+  arg4_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg4)
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS

@@ -5,13 +5,13 @@
 #include <Windows.h>
 #include <string>
 #include <sstream>
+#include <cstring>
 #include "data.pb.h"
 #include "SerialPort.h"
 #pragma comment(lib, "ws2_32.lib")
-#define PORT_NAME L"COM6"
+#define PORT_NAME L"COM3"
 
 void ErrorHandling(char* message);
-void SendInfo(CSerialPort& port, SOCKET& hClientSock, bool& GoOn);
 
 int main()
 {
@@ -28,7 +28,7 @@ int main()
 	bool GoOn = true;
 
 	//Serial port setup
-	port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY);
+	port.Open(PORT_NAME, CBR_9600, 8, ONESTOPBIT, NOPARITY);
 	port.SetTimeout(10, 10, 1);
 
 	
@@ -75,7 +75,7 @@ int main()
 	{
 		ErrorHandling("accept() error");
 	}
-
+	std::cout << "connected" << std::endl;
 
 
 	char serialBuffer[BUFSIZ];
@@ -83,47 +83,70 @@ int main()
 	int i;
 	float f;
 	bool isRight = false;
+	bool sec = false;
 	std::stringbuf buffer;
 	std::ostream os(&buffer);
 	sensor.SerializeToOstream(&os);
 	port.Flush();
-	try {
-		while (GoOn) {
-			do{
-				if (!isRight) {
-					do {
-						port.Read(serialBuffer, 1);
-					} while (*serialBuffer != '\n');
-					isRight = true;
+	while (GoOn) {
+		while (!sec) {
+			if (!isRight) {
+				do {
+					port.Read(serialBuffer, 1);
+				} while (*serialBuffer != '\n');
+				isRight = true;
+			}
+			i = 0;
+			sec = true;
+			while (true) {
+				do {
+					port.Read(serialBuffer + i, 1);
+				} while (serialBuffer[i] < 0);
+				if ((serialBuffer[i] == '\n') && i > 0) {
+					serialBuffer[i] = '\0';
+					break;
 				}
-				port.Read(serialBuffer, 25);
-				serialBuffer[24] = '\0';
-				isRight = (strncmp(serialBuffer, "temperature is ", 15) == 0);
-			} while (!isRight);
-			
-			std::cout << serialBuffer << std::endl;
-			std::string s = serialBuffer + 15;
-			f = std::stof(s);
-			sensor.set_temperature(f);
+				++i;
+			}
+		}
+		std::cout << "Parsed: " << serialBuffer << std::endl;
+		std::string s = serialBuffer;
+		try {
+			f = std::stof(s.substr(0, s.find_first_of(',')));
+			sensor.set_arg0(f);
+			s = s.substr(s.find_first_of(',') + 1);
+			f = std::stof(s.substr(0, s.find_first_of(',')));
+			sensor.set_arg1(f);
+			s = s.substr(s.find_first_of(',') + 1);
+			f = std::stof(s.substr(0, s.find_first_of(',')));
+			sensor.set_arg2(f);
+			s = s.substr(s.find_first_of(',') + 1);
+			f = std::stof(s.substr(0, s.find_first_of(',')));
+			sensor.set_arg3(f);
+			s = s.substr(s.find_first_of(',') + 1);
+			f = std::stof(s.substr(0, s.find_first_of(',')));
+			sensor.set_arg4(f);
+			s = s.substr(s.find_first_of(',') + 1);
 			sensor.SerializeToArray(tcpBuffer, BUFSIZ);
 			//message send
-			send(hClientSock, tcpBuffer, sensor.ByteSize(), 0);
-			std::cout << "send" << std::endl;
 		}
-		//close socket
-		closesocket(hClientSock);
-		port.Close();
+		catch (std::exception e) {
+			continue;
+		}
+		try {
+			send(hClientSock, tcpBuffer, sensor.ByteSize(), 0);
+		}
+		catch (std::exception e) {
+			std::cout << "cannot send data!" << std::endl;
+			continue;
+		}
+		std::cout << "send: " << sensor.ByteSize() << std::endl;
+		sec = false;
+		memset(serialBuffer, '\0', BUFSIZ);
 	}
-	catch (std::exception e) {
-		std::cout << "I'm catch something" << std::endl;
-		closesocket(hClientSock);
-		port.Close();
-	}
-
-
-
-
-	
+	//close socket
+	closesocket(hClientSock);
+	port.Close();
 	closesocket(hServerSock);
 	WSACleanup();
 	return 0;
@@ -135,61 +158,4 @@ void ErrorHandling(char* message)
 	fputc('\n', stdout);
 	system("pause");
 	exit(1);
-}
-
-void SendInfo(CSerialPort& port, SOCKET& hClientSock, bool& GoOn) {
-	char serialBuffer[BUFSIZ];
-	char tcpBuffer[BUFSIZ];
-	Sensor sensor;
-	int i;
-	float f;
-	std::stringbuf buffer;
-	std::ostream os(&buffer);
-	sensor.SerializeToOstream(&os);
-	try {
-		while (GoOn) {
-			// read from port
-			bool isRight = true;
-			do {
-				int isPoint = 0;
-				for (i = 0; i < BUFSIZ; i++) {
-					port.Read(serialBuffer + i, 1);
-					if (serialBuffer[i] == '.') {
-						isPoint++;
-						if (isPoint > 1)
-							break;
-					}
-					else if (serialBuffer[i] == '\r' || serialBuffer[i] == '\n') {
-						if (isPoint) {
-							serialBuffer[i] = '\0';
-							break;
-						}
-						else {
-							i = -1;
-						}
-					}
-				}
-				std::string s = serialBuffer;
-				try {
-					f = std::stof(s);
-				}
-				catch (std::invalid_argument e) {
-					isRight = false;
-				}
-			} while (!isRight);
-			sensor.set_temperature(f);
-			sensor.SerializeToArray(tcpBuffer, BUFSIZ);
-			//message send
-			send(hClientSock, tcpBuffer, sensor.ByteSize(), 0);
-			std::cout << "send" << std::endl;
-			Sleep(100);
-		}
-		//close socket
-		closesocket(hClientSock);
-		port.Close();
-	}
-	catch (std::exception e) {
-		closesocket(hClientSock);
-		port.Close();
-	}
 }
