@@ -80,37 +80,54 @@ int main()
 
 	char serialBuffer[BUFSIZ];
 	char tcpBuffer[BUFSIZ];
-	int i;
+	int realSize = 0;
 	float f;
 	bool isRight = false;
 	bool sec = false;
+	std::string buf1;
+	std::string buf2;
 	std::stringbuf buffer;
 	std::ostream os(&buffer);
 	sensor.SerializeToOstream(&os);
 	port.Flush();
+	port.Read(serialBuffer, BUFSIZ);
 	while (GoOn) {
-		while (!sec) {
+		/*while (!sec) {
 			if (!isRight) {
 				do {
-					port.Read(serialBuffer, 1);
-				} while (*serialBuffer != '\n');
+					realSize = port.Read(serialBuffer, BUFSIZ);
+					strcount = 0;
+					stringBuffer[0] = serialBuffer[strcount];
+					strcount++;
+				} while (*stringBuffer != '\n');
 				isRight = true;
 			}
 			i = 0;
 			sec = true;
 			while (true) {
 				do {
-					port.Read(serialBuffer + i, 1);
-				} while (serialBuffer[i] < 0);
-				if ((serialBuffer[i] == '\n') && i > 0) {
-					serialBuffer[i] = '\0';
+					if (realSize - strcount < 1) {
+						realSize = port.Read(serialBuffer, BUFSIZ);
+						strcount = 0;
+					}
+					stringBuffer[i] = serialBuffer[strcount];
+					strcount++;
+				} while (stringBuffer[i] < 0);
+				if ((stringBuffer[i] == '\n') && i > 0) {
+					stringBuffer[i] = '\0';
 					break;
 				}
 				++i;
 			}
 		}
-		std::cout << "Parsed: " << serialBuffer << std::endl;
-		std::string s = serialBuffer;
+		sec = false;*/
+		realSize = port.Read(serialBuffer, BUFSIZ);
+		std::string buff1 = serialBuffer;
+		std::string pch2 = buff1.substr(0, realSize);
+		std::string s = pch2.substr(pch2.find_first_of('\n') + 1);
+		s = s.substr(0, s.find_first_of('\n'));
+		std::cout << "Parsed: " << s << std::endl;
+		
 		try {
 			f = std::stof(s.substr(0, s.find_first_of(',')));
 			sensor.set_arg0(f);
@@ -131,6 +148,7 @@ int main()
 			//message send
 		}
 		catch (std::exception e) {
+			isRight = false;
 			continue;
 		}
 		try {
@@ -141,8 +159,10 @@ int main()
 			continue;
 		}
 		std::cout << "send: " << sensor.ByteSize() << std::endl;
-		sec = false;
-		memset(serialBuffer, '\0', BUFSIZ);
+		int j = 0;
+		while (j != 100000000) {
+			j++;
+		}
 	}
 	//close socket
 	closesocket(hClientSock);
