@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MyoChecker</string>
+    <string name="access_error">Access Fail!</string>
+</resources>
