@@ -1,5 +1,9 @@
 //#define MyoWin
-#define NUCServer
+//#define NUCServer
+#define MAIN
+
+//test
+#include <time.h>
 
 
 // include
@@ -30,6 +34,200 @@
 // pragma comment
 #pragma comment(lib, "ws2_32.lib")
 
+#ifdef MAIN
+void ErrorHandling(char* message);
+
+int main() {		// Myo, Serial, Socket
+	try {
+		// myo connect
+		myo::Hub hub("com.example.hello-myo");
+		hub.setLockingPolicy(myo::Hub::lockingPolicyNone);
+
+		std::cout << "Attempting to find a Myo..." << std::endl;
+		myo::Myo* myo = hub.waitForMyo(10000);
+
+		if (!myo) {
+			throw std::runtime_error("Unable to find a Myo!");
+		}
+		std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
+
+		DataCollector collector;
+		hub.addListener(&collector);
+
+
+		// serial open
+		CSerialPort port;
+		if (!port.Open(PORT_NAME, CBR_9600, 8, ONESTOPBIT, NOPARITY))
+			return 1;
+		port.SetTimeout(10, 10, 1);
+
+		// serial init
+		port.Flush();
+		char buff[BUFSIZ];
+		int n;
+
+		std::cout << "\nWRITE: ";
+		strcpy_s(buff, "sp0.001f");
+		std::cout << buff << "\n";
+		n = strlen(buff);
+		// write from port
+		port.Write(buff, n);
+
+		port.Read(buff, BUFSIZ);
+		std::string buff1 = buff;
+//		std::string pch3 = buff1.substr(0, n);
+		std::cout << buff1.substr(0, n) << " (" << n << ')' << "\n";
+
+		// socket open
+		GOOGLE_PROTOBUF_VERIFY_VERSION;
+		WSADATA wsaData;
+		SOCKET hServerSock, hClientSock;
+		SOCKADDR_IN serverAddr, clientAddr;
+		int sizeClientAddr;
+		int result;
+
+		// socket open - 1. WSAStart
+		result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		if (result != 0)
+		{
+			ErrorHandling("WSAStartup() error");
+		}
+
+		// socket open - 2. socket open
+		hServerSock = socket(PF_INET, SOCK_STREAM, 0);
+		if (hServerSock == INVALID_SOCKET)
+		{
+			ErrorHandling("socket() error");
+		}
+
+		// socket open - 3. bind socket with port
+		memset(&serverAddr, 0, sizeof(serverAddr));
+		serverAddr.sin_family = AF_INET;
+		serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+		serverAddr.sin_port = htons(atoi("9000"));
+
+		result = bind(hServerSock, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
+		if (result == SOCKET_ERROR)
+		{
+			ErrorHandling("bind() error");
+		}
+
+
+		char tcpBuffer[BUFSIZ];
+		Sensor sensor;
+		std::stringbuf buffer;
+		std::ostream os(&buffer);
+		sensor.SerializeToOstream(&os);
+
+		//listen
+		result = listen(hServerSock, 5);
+		if (result == SOCKET_ERROR)
+		{
+			ErrorHandling("listen() error");
+		}
+
+		//accept client
+		sizeClientAddr = sizeof(clientAddr);
+		hClientSock = accept(hServerSock, (SOCKADDR*)&clientAddr, &sizeClientAddr);
+		if (hClientSock == INVALID_SOCKET)
+		{
+			ErrorHandling("accept() error");
+		}
+		std::cout << "connected" << std::endl;
+
+		while (1) {
+			// myo comm
+			hub.run(1000 / 20);
+			collector.print();
+
+			char speed[7];
+			_itoa_s((int)(collector.speed * 50), speed, 10);
+
+			// serial comm
+			strcpy_s(buff, "sl");
+			strcat_s(buff, speed);
+			strcat_s(buff, "f\0");
+			n = strlen(buff);
+
+			// write from port
+			port.Write(buff, n);
+			std::cout << "\nWRITE: " << buff << "\n";
+
+			// read from port
+			n = port.Read(buff, 1024);
+			std::string buff1 = buff;
+
+			buff1.erase(std::unique(buff1.begin(), buff1.end(),
+				[](char a, char b) { return a == '\n' && b == '\n'; }), buff1.end());
+
+			std::cout << "\nRead: " << buff1.substr(0, buff1.find_first_of("\n")) << "\n";
+			std::string buff2 = buff1.substr(buff1.find_first_of("\n") + 1);
+
+			if ( buff2.find("\n") != std::string::npos){
+				std::cout << "\nbuff2: " << buff2.substr(0, buff2.find_first_of("\n")) << "\n";
+
+				std::string s = buff1.find("Set") != std::string::npos ?	// buff1: Set ~~
+								buff2 : buff1;
+
+				std::cout << "Parsed: " << s << std::endl;
+
+				try {
+					float f;
+
+					f = std::stof(s.substr(0, s.find_first_of(',')));
+					sensor.set_arg0(f);
+					s = s.substr(s.find_first_of(',') + 1);
+					f = std::stof(s.substr(0, s.find_first_of(',')));
+					sensor.set_arg1(f);
+					s = s.substr(s.find_first_of(',') + 1);
+					f = std::stof(s.substr(0, s.find_first_of(',')));
+					sensor.set_arg2(f);
+					s = s.substr(s.find_first_of(',') + 1);
+					f = std::stof(s.substr(0, s.find_first_of(',')));
+					sensor.set_arg3(f);
+					s = s.substr(s.find_first_of(',') + 1);
+					f = std::stof(s.substr(0, s.find_first_of(',')));
+					sensor.set_arg4(f);
+					s = s.substr(s.find_first_of(',') + 1);
+
+					sensor.SerializeToArray(tcpBuffer, BUFSIZ);
+					//message send
+				}
+				catch (std::exception e) {
+					std::cout << "parsing error!" << std::endl;
+				}
+
+				try {
+					send(hClientSock, tcpBuffer, sensor.ByteSize(), 0);
+				}
+				catch (std::exception e) {
+					std::cout << "cannot send data!" << std::endl;
+				}
+				std::cout << "send: " << sensor.ByteSize() << std::endl;
+
+			}
+			std::cout << " (" << n << ')' << "\n";
+		}
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << "Press enter to continue.";
+		std::cin.ignore();
+		return 1;
+	}
+}
+
+void ErrorHandling(char* message)
+{
+	fputs(message, stdout);
+	fputc('\n', stdout);
+	system("pause");
+	exit(1);
+}
+#endif
+
+
+
 #ifdef MyoWin
 /*
 // Serial Communication
@@ -53,7 +251,7 @@ int main(int argc, char** argv)
 	port.SetTimeout(10, 10, 1);
 
 	int n;
-	char buff[1024] = { 0 };
+	char buff[1024];
 	char **context = (char **)malloc(sizeof(char) * 1024);;
 	int bthbuff[25];
 
@@ -110,17 +308,20 @@ int main(int argc, char** argv)
 		timer = 0;
 		// Finally we enter our main loop.
 		while (1) {
+			std::cout << time(NULL) << std::endl;
 			// In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
 			// In this case, we wish to update our display 20 times a second, so we run for 1000/20 milliseconds.
 			hub.run(1000 / 20);
 			// After processing events, we call the print() member function we defined above to print out the values we've
 			// obtained from any events that have occurred.
+			std::cout << time(NULL) << std::endl;
 			collector.print();
 			std::cout << timer;
 
 			std::cout << "\nWRITE: ";
 			char speed[7];
 			_itoa_s((int)(collector.speed * 50), speed, 10);
+
 			strcpy_s(buff, "sl");
 			strcat_s(buff, speed);
 			strcat_s(buff, "f\0");
@@ -134,7 +335,7 @@ int main(int argc, char** argv)
 			// write from port
 			port.Write(buff, n);
 
-			if (timer == 100) {
+			if (timer == 10) {
 				timer = 0;
 
 				//				Sleep(500);
