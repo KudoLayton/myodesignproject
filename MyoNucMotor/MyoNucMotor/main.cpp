@@ -29,7 +29,7 @@
 //	#include "SerialPort.h"
 
 // define
-#define PORT_NAME L"\\\\.\\COM14"
+#define PORT_NAME L"COM5"
 
 // pragma comment
 #pragma comment(lib, "ws2_32.lib")
@@ -87,20 +87,25 @@ int main() {		// Myo, Serial, Socket
 		int result;
 
 		// socket open - 1. WSAStart
+		std::cout << "WSAStartup" << std::endl;
 		result = WSAStartup(MAKEWORD(2, 2), &wsaData);
 		if (result != 0)
 		{
 			ErrorHandling("WSAStartup() error");
 		}
+		std::cout << "WSAStartup finished" << std::endl;
 
 		// socket open - 2. socket open
+		std::cout << "socket open" << std::endl;
 		hServerSock = socket(PF_INET, SOCK_STREAM, 0);
 		if (hServerSock == INVALID_SOCKET)
 		{
 			ErrorHandling("socket() error");
 		}
+		std::cout << "socket open finished" << std::endl;
 
 		// socket open - 3. bind socket with port
+		std::cout << "bind socket" << std::endl;
 		memset(&serverAddr, 0, sizeof(serverAddr));
 		serverAddr.sin_family = AF_INET;
 		serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
@@ -111,6 +116,7 @@ int main() {		// Myo, Serial, Socket
 		{
 			ErrorHandling("bind() error");
 		}
+		std::cout << "bind socket finished" << std::endl;
 
 
 		char tcpBuffer[BUFSIZ];
@@ -120,6 +126,7 @@ int main() {		// Myo, Serial, Socket
 		sensor.SerializeToOstream(&os);
 
 		//listen
+		std::cout << "listen client..." << std::endl;
 		result = listen(hServerSock, 5);
 		if (result == SOCKET_ERROR)
 		{
@@ -127,6 +134,7 @@ int main() {		// Myo, Serial, Socket
 		}
 
 		//accept client
+		std::cout << "accept client..." << std::endl;
 		sizeClientAddr = sizeof(clientAddr);
 		hClientSock = accept(hServerSock, (SOCKADDR*)&clientAddr, &sizeClientAddr);
 		if (hClientSock == INVALID_SOCKET)
@@ -166,29 +174,83 @@ int main() {		// Myo, Serial, Socket
 			if ( buff2.find("\n") != std::string::npos){
 				std::cout << "\nbuff2: " << buff2.substr(0, buff2.find_first_of("\n")) << "\n";
 
-				std::string s = buff1.find("Set") != std::string::npos ?	// buff1: Set ~~
-								buff2 : buff1;
+				std::string s = buff1.find("set") != std::string::npos ?	// buff1: Set ~~
+								buff2.substr(0, buff2.find_first_of("\n")) : buff1.substr(0, buff1.find_first_of("\n"));
 
 				std::cout << "Parsed: " << s << std::endl;
 
 				try {
 					float f;
 
-					f = std::stof(s.substr(0, s.find_first_of(',')));
-					sensor.set_arg0(f);
-					s = s.substr(s.find_first_of(',') + 1);
-					f = std::stof(s.substr(0, s.find_first_of(',')));
-					sensor.set_arg1(f);
-					s = s.substr(s.find_first_of(',') + 1);
-					f = std::stof(s.substr(0, s.find_first_of(',')));
-					sensor.set_arg2(f);
-					s = s.substr(s.find_first_of(',') + 1);
-					f = std::stof(s.substr(0, s.find_first_of(',')));
-					sensor.set_arg3(f);
-					s = s.substr(s.find_first_of(',') + 1);
-					f = std::stof(s.substr(0, s.find_first_of(',')));
-					sensor.set_arg4(f);
-					s = s.substr(s.find_first_of(',') + 1);
+					if (s.find(",") != std::string::npos) {
+						f = std::stof(s.substr(0, s.find_first_of(',')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg0(f);
+						std::cout << "arg0: " << f << std::endl;
+						s = s.substr(s.find_first_of(',') + 1);
+					}
+					else {
+						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg0(f);
+						std::cout << "arg0: " << f << std::endl;
+					}
+
+					if (s.find(",") != std::string::npos) {
+						f = std::stof(s.substr(0, s.find_first_of(',')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg1(f);
+						std::cout << "arg1: " << f << std::endl;
+						s = s.substr(s.find_first_of(',') + 1);
+					}
+					else {
+						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg1(f);
+						std::cout << "arg1: " << f << std::endl;
+					}
+
+					if (s.find(",") != std::string::npos) {
+						f = std::stof(s.substr(0, s.find_first_of(',')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg2(f);
+						std::cout << "arg2: " << f << std::endl;
+						s = s.substr(s.find_first_of(',') + 1);
+					}
+					else {
+						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg2(f);
+						std::cout << "arg2: " << f << std::endl;
+					}
+
+					if (s.find(",") != std::string::npos) {
+						f = std::stof(s.substr(0, s.find_first_of(',')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg3(f);
+						std::cout << "arg3: " << f << std::endl;
+						s = s.substr(s.find_first_of(',') + 1);
+					}
+					else {
+						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg3(f);
+						std::cout << "arg3: " << f << std::endl;
+					}
+
+					if (s.find(",") != std::string::npos) {
+						f = std::stof(s.substr(0, s.find_first_of(',')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg4(f);
+						std::cout << "arg4: " << f << std::endl;
+						s = s.substr(s.find_first_of(',') + 1);
+					}
+					else {
+						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg4(f);
+						std::cout << "arg4: " << f << std::endl;
+					}
 
 					sensor.SerializeToArray(tcpBuffer, BUFSIZ);
 					//message send

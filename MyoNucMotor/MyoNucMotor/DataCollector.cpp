@@ -58,14 +58,15 @@ void DataCollector::onOrientationData(myo::Myo* myo, uint64_t timestamp, const m
 	if (Ez == Mid) {
 		theta = atan2(pos.y(), pos.x()) * 180 / M_PI;
 
-//		myo::Quaternion<float> toOrigin = myo::rotate(pos, myo::Vector3<float>(-1, 0, 0));
-//		toOrigin = Quat * referenceQuat.conjugate();
+		//		myo::Quaternion<float> toOrigin = myo::rotate(pos, myo::Vector3<float>(-1, 0, 0));
+		//		toOrigin = Quat * referenceQuat.conjugate();
 		float roll = atan2(2.0f * (quat.w() * quat.x() + quat.y() * quat.z()),
 			1.0f - 2.0f * (quat.x() * quat.x() + quat.y() * quat.y()));
 		roll *= 10;
-		speed = (int) referenceRoll - roll;
+		speed = (int)referenceRoll - roll;
 	}
-
+	else if (Ez == Down)
+		speed = 0;
 }
 
 // onPose() is called whenever the Myo detects that the person wearing it has changed their pose, for example,
