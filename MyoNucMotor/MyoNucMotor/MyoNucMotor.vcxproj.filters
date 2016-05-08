@@ -21,16 +21,10 @@
     <ClCompile Include="DataCollector.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="MyoWin.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="SerialPort.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="SerialPortTest.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Server.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

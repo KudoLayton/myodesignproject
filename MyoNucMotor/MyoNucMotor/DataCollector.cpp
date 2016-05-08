@@ -125,8 +125,8 @@ void DataCollector::print()
 	std::cout << (Ez == Up ? "Up" : (Ez == Down ? "Down" : "Mid"));
 
 	if (Ez == Mid)
-		std::cout << '\t' << (int) theta << '\t' << (int) speed << '\t';
-	else std::cout << "\t\t\t\t";
+		std::cout << '\t' << (int) theta << '\t' << (int) speed << '\t' << std::endl;
+	else std::cout << "\t\t\t\t" << std::endl;
 	// Print out the orientation. Orientation data is always available, even if no arm is currently recognized.
 /*
 	std::cout
