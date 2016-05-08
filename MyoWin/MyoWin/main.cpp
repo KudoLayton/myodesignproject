@@ -111,11 +111,11 @@ int main(int argc, char** argv)
 
 				char* pch = strtok_s(buff, "\n", context);
 				char* pch1 = strtok_s(*context, "\n", context);
-				std::string pch2 = buff1.substr(0, n);
+				std::string pch3 = buff1.substr(0, n);
 
 				//		n = port.Read((char *)bthbuff, 20);
 
-				std::cout << pch2 << " (" << n << ')' << "\n";
+				std::cout << pch3 << " (" << n << ')' << "\n";
 				//		std::wcout << "READ: " << pch << "\n" <<  pch1 << " (" << n << ')' << '\n';
 			}
 

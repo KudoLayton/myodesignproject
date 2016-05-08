@@ -1,3 +1,6 @@
+//#define  -D_SCL_SECURE_NO_WARNINGS 
+//#pragma warning(disable:4996)
+
 #include <iostream>
 #include <stdlib.h>
 #include <thread>
