@@ -177,10 +177,10 @@ int main() {		// Myo, Serial, Socket
 				std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
 
 				std::string s = buff1.find("set", buff1.find_first_of("\n")) != std::string::npos ?	// buff1 : set~
-					buff2.find("set", buff2.find_first_of("\n")) != std::string::npos ? 
+					buff2.find("set", buff2.find_first_of("\n")) != std::string::npos ? // buff2 : set~
 						buff1.substr(0, buff1.find_first_of("\n")) :
-						buff2.substr(0, buff2.find_first_of("\n")) :
-						buff3.substr(0, buff3.find_first_of("\n"))	;
+						buff3.substr(0, buff3.find_first_of("\n")) :
+						buff2.substr(0, buff2.find_first_of("\n"))	;
 
 //				std::string s = buff1.substr(0, buff1.find_first_of("\n"));
 				std::cout << "Parsed: " << s << std::endl;
