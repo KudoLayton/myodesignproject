@@ -56,7 +56,8 @@ void DataCollector::onOrientationData(myo::Myo* myo, uint64_t timestamp, const m
 	pos = myo::rotate(myo::Quaternion<float>(0, 0, 1, 0), pos);
 
 	if (Ez == Mid) {
-		theta = atan2(pos.y(), pos.x()) * 180 / M_PI;
+//		theta = atan2(pos.y(), pos.x()) * 180 / M_PI;
+		theta = atan2(pos.y(), pos.x());
 
 		//		myo::Quaternion<float> toOrigin = myo::rotate(pos, myo::Vector3<float>(-1, 0, 0));
 		//		toOrigin = Quat * referenceQuat.conjugate();
@@ -122,11 +123,12 @@ void DataCollector::print()
 		speed = roll;
 		*/
 
-	std::cout << (Ez == Up ? "Up" : (Ez == Down ? "Down" : "Mid"));
-
+	std::cout << (Ez == Up ? "Up" : (Ez == Down ? "Down" : "Mid")) << '\t';
+/*
 	if (Ez == Mid)
-		std::cout << '\t' << (int) theta << '\t' << (int) speed << '\t' << std::endl;
-	else std::cout << "\t\t\t\t" << std::endl;
+		std::cout << (int) (theta * 180 / M_PI) << '\t' << (int) speed << '\t' << std::endl;
+	else std::cout << "\t\t\t" << std::endl;
+	*/
 	// Print out the orientation. Orientation data is always available, even if no arm is currently recognized.
 /*
 	std::cout

@@ -22,6 +22,9 @@
 //#define PORT_NAME L"COM5"
 #define PORT_NAME L"\\\\.\\COM14"
 
+#define Car_L 15
+#define Car_d 20
+
 void ErrorHandling(char* message);
 void client_connect(SOCKET, char *, Sensor *);
 void client_send(SOCKET hClientSock, char *tcpBuffer, Sensor *sensor);
@@ -126,15 +129,23 @@ int main() {		// Myo, Serial, Socket
 
 		std::thread t (client_connect, hServerSock, tcpBuffer, &sensor);
 
+		float _speed = 0;
+		char Lspeed[7];
+		char Rspeed[7];
+
+		float Lmove = 0;
+		float Rmove = 0;
 		while (1) {
 			// myo comm
 			hub.run(1000 / 20);
 			collector.print();
 
-			char Lspeed[7];
-			char Rspeed[7];
-			_itoa_s((int)(collector.speed * 20), Lspeed, 10);
-			_itoa_s((int)(collector.speed * 20), Rspeed, 10);
+			_speed = std::sin(collector.theta) * Car_d / Car_L;
+			_itoa_s((int)((1 - _speed) * collector.speed * 20), Lspeed, 10);
+			_itoa_s((int)((1 + _speed) * collector.speed * 20), Rspeed, 10);
+//			std::cout << "theta: " << collector.theta << '\t' << _speed << std::endl;
+//			std::cout << "\r";
+			std::cout << "speed: " << Lspeed << '\t' << Rspeed << "\t" << Lmove << "\t" << Rmove;// << std::endl;
 
 			// serial comm
 			strcpy_s(buff, "sl");
@@ -144,7 +155,7 @@ int main() {		// Myo, Serial, Socket
 
 			// write from port
 			port.Write(buff, n);
-			std::cout << "WRITE: " << buff << std::endl;
+//			std::cout << "WRITE: " << buff << std::endl;
 
 
 			// serial comm
@@ -155,7 +166,7 @@ int main() {		// Myo, Serial, Socket
 
 			// write from port
 			port.Write(buff, n);
-			std::cout << "WRITE: " << buff << std::endl;
+//			std::cout << "WRITE: " << buff << std::endl;
 			Sleep(20);
 
 			// read from port
@@ -164,17 +175,20 @@ int main() {		// Myo, Serial, Socket
 
 			buff1.erase(std::unique(buff1.begin(), buff1.end(),
 				[](char a, char b) { return a == '\n' && b == '\n'; }), buff1.end());
+			if (buff1.find_first_of("\n") == 0)
+				buff1.erase(0);
 
 			std::string buff2 = buff1.substr(buff1.find_first_of('\n') + 1);
 			std::string buff3 = buff2.substr(buff2.find_first_of('\n') + 1);
-
+/*
 			std::cout << "Total Read: " << buff1.substr(0, n) << std::endl;
 
 			std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
 			std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
+			*/
 
 			if ( buff3.find("\n") != std::string::npos){
-				std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
+//				std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
 
 				std::string s = buff1.find("set", buff1.find_first_of("\n")) != std::string::npos ?	// buff1 : set~
 					buff2.find("set", buff2.find_first_of("\n")) != std::string::npos ? // buff2 : set~
@@ -183,7 +197,7 @@ int main() {		// Myo, Serial, Socket
 						buff2.substr(0, buff2.find_first_of("\n"))	;
 
 //				std::string s = buff1.substr(0, buff1.find_first_of("\n"));
-				std::cout << "Parsed: " << s << std::endl;
+//				std::cout << "Parsed: " << s << std::endl;
 
 				try {
 					float f;
@@ -192,13 +206,13 @@ int main() {		// Myo, Serial, Socket
 						f = std::stof(s.substr(0, s.find_first_of(',')));
 						f = f == 0 ? -1 : f;
 						sensor.set_arg0(f);
-						std::cout << "arg0: " << f << std::endl;
+//						std::cout << "arg0: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
 						f = f == 0 ? -1 : f;
-						sensor.set_arg0(f);
+//						sensor.set_arg0(f);
 						std::cout << "arg0: " << f << std::endl;
 					}
 
@@ -206,56 +220,60 @@ int main() {		// Myo, Serial, Socket
 						f = std::stof(s.substr(0, s.find_first_of(',')));
 						f = f == 0 ? -1 : f;
 						sensor.set_arg1(f);
-						std::cout << "arg1: " << f << std::endl;
+//						std::cout << "arg1: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
 						f = f == 0 ? -1 : f;
 						sensor.set_arg1(f);
-						std::cout << "arg1: " << f << std::endl;
+//						std::cout << "arg1: " << f << std::endl;
 					}
 
 					if (s.find(",") != std::string::npos) {
 						f = std::stof(s.substr(0, s.find_first_of(',')));
+						Lmove += f;
 						f = f == 0 ? -1 : f;
 						sensor.set_arg2(f);
-						std::cout << "arg2: " << f << std::endl;
+//						std::cout << "arg2: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						Lmove += f;
 						f = f == 0 ? -1 : f;
 						sensor.set_arg2(f);
-						std::cout << "arg2: " << f << std::endl;
+//						std::cout << "arg2: " << f << std::endl;
 					}
 
 					if (s.find(",") != std::string::npos) {
 						f = std::stof(s.substr(0, s.find_first_of(',')));
+						Rmove += f;
 						f = f == 0 ? -1 : f;
 						sensor.set_arg3(f);
-						std::cout << "arg3: " << f << std::endl;
+//						std::cout << "arg3: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						Rmove += f;
 						f = f == 0 ? -1 : f;
 						sensor.set_arg3(f);
-						std::cout << "arg3: " << f << std::endl;
+//						std::cout << "arg3: " << f << std::endl;
 					}
 
 					if (s.find(",") != std::string::npos) {
 						f = std::stof(s.substr(0, s.find_first_of(',')));
 						f = f == 0 ? -1 : f;
 						sensor.set_arg4(f);
-						std::cout << "arg4: " << f << std::endl;
+//						std::cout << "arg4: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
 						f = f == 0 ? -1 : f;
 						sensor.set_arg4(f);
-						std::cout << "arg4: " << f << std::endl;
+//						std::cout << "arg4: " << f << std::endl;
 					}
 
 //					std::lock_guard<std::mutex> guard(tcpBuffer_mut);
@@ -270,9 +288,15 @@ int main() {		// Myo, Serial, Socket
 				}
 				catch (std::exception e) {
 					std::cout << "parsing error!" << std::endl;
+					std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
+					std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
+					std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
+//					std::cout << " (" << n << ')' << "\n";
+//					std::cout << " (" << buff1.find_first_of("\n") << ')' << "\n";
+					std::cout << "Parsed: " << s << std::endl;
 				}
 			}
-			std::cout << " (" << n << ')' << "\n";
+//			std::cout << " (" << n << ')' << "\n";
 		}
 		std::thread *p;
 		while (!clientThreads.empty()) {
