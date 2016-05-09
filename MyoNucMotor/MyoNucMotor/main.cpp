@@ -20,7 +20,7 @@
 #include "data.pb.h"
 
 //#define PORT_NAME L"COM5"
-#define PORT_NAME L"\\\\.\\COM14"
+//#define PORT_NAME L"\\\\.\\COM14"
 
 #define Car_L 15
 #define Car_d 20
@@ -52,8 +52,10 @@ int main() {		// Myo, Serial, Socket
 
 		// serial open
 		CSerialPort port;
-		if (!port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY))
-			return 1;
+//		if (!port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY))
+		if (!port.Open(L"COM5", CBR_115200, 8, ONESTOPBIT, NOPARITY))
+			if (!port.Open(L"\\\\.\\COM14", CBR_115200, 8, ONESTOPBIT, NOPARITY))
+				return 1;
 		port.SetTimeout(10, 10, 1);
 
 		// serial init
