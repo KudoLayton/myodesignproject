@@ -53,7 +53,7 @@ int main() {		// Myo, Serial, Socket
 		// serial open
 		CSerialPort port;
 //		if (!port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY))
-		if (!port.Open(L"COM5", CBR_115200, 8, ONESTOPBIT, NOPARITY))
+		if (!port.Open(L"COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY))
 			if (!port.Open(L"\\\\.\\COM14", CBR_115200, 8, ONESTOPBIT, NOPARITY))
 				return 1;
 		port.SetTimeout(10, 10, 1);
