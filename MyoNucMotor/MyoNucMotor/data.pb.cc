@@ -33,12 +33,15 @@ void protobuf_AssignDesc_data_2eproto() {
       "data.proto");
   GOOGLE_CHECK(file != NULL);
   Sensor_descriptor_ = file->message_type(0);
-  static const int Sensor_offsets_[5] = {
+  static const int Sensor_offsets_[8] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg0_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg1_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg2_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg3_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg4_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg5_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg6_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sensor, arg7_),
   };
   Sensor_reflection_ =
     ::google::protobuf::internal::GeneratedMessageReflection::NewGeneratedMessageReflection(
@@ -81,9 +84,10 @@ void protobuf_AddDesc_data_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\ndata.proto\"N\n\006Sensor\022\014\n\004arg0\030\001 \001(\002\022\014\n\004"
+    "\n\ndata.proto\"x\n\006Sensor\022\014\n\004arg0\030\001 \001(\002\022\014\n\004"
     "arg1\030\002 \001(\002\022\014\n\004arg2\030\003 \001(\002\022\014\n\004arg3\030\004 \001(\002\022\014"
-    "\n\004arg4\030\005 \001(\002b\006proto3", 100);
+    "\n\004arg4\030\005 \001(\002\022\014\n\004arg5\030\006 \001(\002\022\014\n\004arg6\030\007 \001(\002"
+    "\022\014\n\004arg7\030\010 \001(\002b\006proto3", 142);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "data.proto", &protobuf_RegisterTypes);
   Sensor::default_instance_ = new Sensor();
@@ -116,6 +120,9 @@ const int Sensor::kArg1FieldNumber;
 const int Sensor::kArg2FieldNumber;
 const int Sensor::kArg3FieldNumber;
 const int Sensor::kArg4FieldNumber;
+const int Sensor::kArg5FieldNumber;
+const int Sensor::kArg6FieldNumber;
+const int Sensor::kArg7FieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 Sensor::Sensor()
@@ -144,6 +151,9 @@ void Sensor::SharedCtor() {
   arg2_ = 0;
   arg3_ = 0;
   arg4_ = 0;
+  arg5_ = 0;
+  arg6_ = 0;
+  arg7_ = 0;
 }
 
 Sensor::~Sensor() {
@@ -190,7 +200,7 @@ void Sensor::Clear() {
            ZR_HELPER_(last) - ZR_HELPER_(first) + sizeof(last));\
 } while (0)
 
-  ZR_(arg0_, arg4_);
+  ZR_(arg0_, arg7_);
 
 #undef ZR_HELPER_
 #undef ZR_
@@ -277,6 +287,51 @@ bool Sensor::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(53)) goto parse_arg5;
+        break;
+      }
+
+      // optional float arg5 = 6;
+      case 6: {
+        if (tag == 53) {
+         parse_arg5:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &arg5_)));
+
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(61)) goto parse_arg6;
+        break;
+      }
+
+      // optional float arg6 = 7;
+      case 7: {
+        if (tag == 61) {
+         parse_arg6:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &arg6_)));
+
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(69)) goto parse_arg7;
+        break;
+      }
+
+      // optional float arg7 = 8;
+      case 8: {
+        if (tag == 69) {
+         parse_arg7:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &arg7_)));
+
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -330,6 +385,21 @@ void Sensor::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteFloat(5, this->arg4(), output);
   }
 
+  // optional float arg5 = 6;
+  if (this->arg5() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(6, this->arg5(), output);
+  }
+
+  // optional float arg6 = 7;
+  if (this->arg6() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(7, this->arg6(), output);
+  }
+
+  // optional float arg7 = 8;
+  if (this->arg7() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(8, this->arg7(), output);
+  }
+
   // @@protoc_insertion_point(serialize_end:Sensor)
 }
 
@@ -361,6 +431,21 @@ void Sensor::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(5, this->arg4(), target);
   }
 
+  // optional float arg5 = 6;
+  if (this->arg5() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(6, this->arg5(), target);
+  }
+
+  // optional float arg6 = 7;
+  if (this->arg6() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(7, this->arg6(), target);
+  }
+
+  // optional float arg7 = 8;
+  if (this->arg7() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(8, this->arg7(), target);
+  }
+
   // @@protoc_insertion_point(serialize_to_array_end:Sensor)
   return target;
 }
@@ -390,6 +475,21 @@ int Sensor::ByteSize() const {
 
   // optional float arg4 = 5;
   if (this->arg4() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // optional float arg5 = 6;
+  if (this->arg5() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // optional float arg6 = 7;
+  if (this->arg6() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // optional float arg7 = 8;
+  if (this->arg7() != 0) {
     total_size += 1 + 4;
   }
 
@@ -428,6 +528,15 @@ void Sensor::MergeFrom(const Sensor& from) {
   if (from.arg4() != 0) {
     set_arg4(from.arg4());
   }
+  if (from.arg5() != 0) {
+    set_arg5(from.arg5());
+  }
+  if (from.arg6() != 0) {
+    set_arg6(from.arg6());
+  }
+  if (from.arg7() != 0) {
+    set_arg7(from.arg7());
+  }
 }
 
 void Sensor::CopyFrom(const ::google::protobuf::Message& from) {
@@ -457,6 +566,9 @@ void Sensor::InternalSwap(Sensor* other) {
   std::swap(arg2_, other->arg2_);
   std::swap(arg3_, other->arg3_);
   std::swap(arg4_, other->arg4_);
+  std::swap(arg5_, other->arg5_);
+  std::swap(arg6_, other->arg6_);
+  std::swap(arg7_, other->arg7_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
 }
@@ -540,6 +652,48 @@ void Sensor::clear_arg4() {
   
   arg4_ = value;
   // @@protoc_insertion_point(field_set:Sensor.arg4)
+}
+
+// optional float arg5 = 6;
+void Sensor::clear_arg5() {
+  arg5_ = 0;
+}
+ float Sensor::arg5() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg5)
+  return arg5_;
+}
+ void Sensor::set_arg5(float value) {
+  
+  arg5_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg5)
+}
+
+// optional float arg6 = 7;
+void Sensor::clear_arg6() {
+  arg6_ = 0;
+}
+ float Sensor::arg6() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg6)
+  return arg6_;
+}
+ void Sensor::set_arg6(float value) {
+  
+  arg6_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg6)
+}
+
+// optional float arg7 = 8;
+void Sensor::clear_arg7() {
+  arg7_ = 0;
+}
+ float Sensor::arg7() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg7)
+  return arg7_;
+}
+ void Sensor::set_arg7(float value) {
+  
+  arg7_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg7)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
