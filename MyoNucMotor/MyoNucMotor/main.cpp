@@ -52,17 +52,16 @@ std::string sensor_parsing(Sensor *sensor, std::string s, int i, float *Lmove, f
 		f = 0;
 
 //	std::cout << i << ':' << s << std::endl;
-	f = f == 0 ? -1 : f;
-
+	f = f == 0 ? -1 : f * rpm2cm_s;		// rpm2 cm/s ans if zero turn to -1.
 	switch (i) {
-	case 0: sensor->set_arg0(*Lmove * rpm2cm_s); break;		// Lmove
-	case 1: sensor->set_arg1(*Rmove * rpm2cm_s); break;		// Rmove
-	case 2: sensor->set_arg2(f * rpm2cm_s); break;		// set vel
-	case 3: sensor->set_arg3(f * rpm2cm_s); break;		// set vel
-	case 4: *Lmove += f;  sensor->set_arg4(f * rpm2cm_s); break;		// d Lmove (d = 1s)
-	case 5: *Rmove += f;  sensor->set_arg5(f * rpm2cm_s); break;		// d Rmove (d = 1s)
-	case 6: sensor->set_arg6(f * rpm2cm_s); break;		// tempurater
-	case 7: sensor->set_arg7(f * rpm2cm_s); break;		// dummy
+	case 0: sensor->set_arg0(*Lmove); break;		// Lmove
+	case 1: sensor->set_arg1(*Rmove); break;		// Rmove
+	case 2: sensor->set_arg2(f); break;		// set vel
+	case 3: sensor->set_arg3(f); break;		// set vel
+	case 4: *Lmove += f;  sensor->set_arg4(f); break;		// d Lmove (d = 1s)
+	case 5: *Rmove += f;  sensor->set_arg5(f); break;		// d Rmove (d = 1s)
+	case 6: sensor->set_arg6(f); break;		// tempurater
+	case 7: sensor->set_arg7(f); break;		// dummy
 	default:;
 	}
 
