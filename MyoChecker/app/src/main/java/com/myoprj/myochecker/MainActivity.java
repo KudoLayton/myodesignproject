@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Handler;
 
@@ -27,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements  MediaPlayer.OnEr
     EMVideoView emVideoView;
     Button connectButton;
     EditText ipText;
-    Switch[] args;
+    TextView[] args;
     String[] textMsg;
     int i;
     @Override
@@ -39,13 +40,13 @@ public class MainActivity extends AppCompatActivity implements  MediaPlayer.OnEr
         textMsg = new String[5];
         ipText = (EditText)findViewById(R.id.ipText);
         emVideoView.setOnErrorListener(this);
-        args = new Switch[5];
+        args = new TextView[5];
         i = 0;
-        args[0] = (Switch)findViewById(R.id.Arg0);
-        args[1] = (Switch)findViewById(R.id.Arg1);
-        args[2] = (Switch)findViewById(R.id.Arg2);
-        args[3] = (Switch)findViewById(R.id.Arg3);
-        args[4] = (Switch)findViewById(R.id.Arg4);
+        //args[0] = (Switch)findViewById(R.id.Arg0);
+        args[1] = (TextView)findViewById(R.id.Arg1);
+        args[2] = (TextView)findViewById(R.id.Arg2);
+        args[3] = (TextView)findViewById(R.id.Arg3);
+        //args[4] = (Switch)findViewById(R.id.Arg4);
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,29 +89,33 @@ public class MainActivity extends AppCompatActivity implements  MediaPlayer.OnEr
 
     public Handler mHandler = new Handler(){ // 핸들러 처리부분
         public void handleMessage(Message msg){ // 메시지를 받는부분
-            args[0].setText(textMsg[0]);
+            //args[0].setText(textMsg[0]);
             args[1].setText(textMsg[1]);
             args[2].setText(textMsg[2]);
             args[3].setText(textMsg[3]);
-            args[4].setText(textMsg[4]);
+           // args[4].setText(textMsg[4]);
         };
     };
 
     private Thread checkUpdate = new Thread() {
 
         public void run() {
-            byte[] str = new byte[25];
+            byte[] str = new byte[40];
             try{
                 setSocket(ipText.getText().toString(), 9000);
                 while(true) {
                     Log.i("i", "start");
-                    networkReader.read(str, 0, 25);
+                    networkReader.read(str, 0, 40);
                     Data.Sensor sensor = Data.Sensor.parseFrom(str);
-                    textMsg[0] = "Arg0: " + sensor.getArg0();
-                    textMsg[1] = "Arg1: " + sensor.getArg1();
-                    textMsg[2] = "Arg2: " + sensor.getArg2();
-                    textMsg[3] = "Arg3: " + sensor.getArg3();
-                    textMsg[4] = "Arg4: " + sensor.getArg4();
+                    float temp;
+                    //temp = (sensor.getArg0() + sensor.getArg1()) / 200;
+                    //textMsg[0] = "Total Travel: " + String.format("%.2f", temp) + "m";
+                    temp  = (((sensor.getArg2()==-1)?0:sensor.getArg2()) + ((sensor.getArg3()==-1)?0:sensor.getArg3())) / 200;
+                    textMsg[1] = "Current Velocity: " + String.format("%.2f", temp) + "m/s";
+                    temp = (((sensor.getArg4()==-1)?0:sensor.getArg4()) + ((sensor.getArg5()==-1)?0:sensor.getArg5())) / 200;
+                    textMsg[2] = "Average Velocity: " + String.format("%.2f", temp) + "m/s";
+                    textMsg[3] = "Temperature: " + String.format("%.2f", ((sensor.getArg6()==-1)?0:sensor.getArg6())) + "℃";
+                    textMsg[4] = "Dummy: " + sensor.getArg7();
                     Message msg = mHandler.obtainMessage();
                     mHandler.sendMessage(msg);
                     i++;

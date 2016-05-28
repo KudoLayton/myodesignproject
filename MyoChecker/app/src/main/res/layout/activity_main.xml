@@ -62,42 +62,44 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <Switch
+                <!---<Switch
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Arg0"
+                    android:text="Total Travel"
                     android:id="@+id/Arg0"
                     android:textStyle="bold"
-                    android:textSize="20dp" />
+                    android:textSize="20dp" />-->
 
-                <Switch
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Arg1"
+                    android:text="Current Velocity"
                     android:id="@+id/Arg1"
                     android:textStyle="bold"
                     android:textSize="20dp" />
-                <Switch
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Arg2"
+                    android:text="Average Velocity"
                     android:id="@+id/Arg2"
                     android:textStyle="bold"
                     android:textSize="20dp" />
-                <Switch
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Arg3"
+                    android:text="Temperature"
                     android:id="@+id/Arg3"
                     android:textStyle="bold"
                     android:textSize="20dp" />
-                <Switch
+                <!---<Switch
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Arg4"
                     android:id="@+id/Arg4"
                     android:textStyle="bold"
-                    android:textSize="20dp" />
+                    android:textSize="20dp"
+                    android:enabled="false"
+                    android:/>-->
             </LinearLayout>
         </ScrollView>
 

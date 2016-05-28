@@ -35,6 +35,21 @@ public final class Data {
      * <code>optional float arg4 = 5;</code>
      */
     float getArg4();
+
+    /**
+     * <code>optional float arg5 = 6;</code>
+     */
+    float getArg5();
+
+    /**
+     * <code>optional float arg6 = 7;</code>
+     */
+    float getArg6();
+
+    /**
+     * <code>optional float arg7 = 8;</code>
+     */
+    float getArg7();
   }
   /**
    * Protobuf type {@code Sensor}
@@ -53,6 +68,9 @@ public final class Data {
       arg2_ = 0F;
       arg3_ = 0F;
       arg4_ = 0F;
+      arg5_ = 0F;
+      arg6_ = 0F;
+      arg7_ = 0F;
     }
 
     @java.lang.Override
@@ -102,6 +120,21 @@ public final class Data {
             case 45: {
 
               arg4_ = input.readFloat();
+              break;
+            }
+            case 53: {
+
+              arg5_ = input.readFloat();
+              break;
+            }
+            case 61: {
+
+              arg6_ = input.readFloat();
+              break;
+            }
+            case 69: {
+
+              arg7_ = input.readFloat();
               break;
             }
           }
@@ -173,6 +206,33 @@ public final class Data {
       return arg4_;
     }
 
+    public static final int ARG5_FIELD_NUMBER = 6;
+    private float arg5_;
+    /**
+     * <code>optional float arg5 = 6;</code>
+     */
+    public float getArg5() {
+      return arg5_;
+    }
+
+    public static final int ARG6_FIELD_NUMBER = 7;
+    private float arg6_;
+    /**
+     * <code>optional float arg6 = 7;</code>
+     */
+    public float getArg6() {
+      return arg6_;
+    }
+
+    public static final int ARG7_FIELD_NUMBER = 8;
+    private float arg7_;
+    /**
+     * <code>optional float arg7 = 8;</code>
+     */
+    public float getArg7() {
+      return arg7_;
+    }
+
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
@@ -200,6 +260,15 @@ public final class Data {
       if (arg4_ != 0F) {
         output.writeFloat(5, arg4_);
       }
+      if (arg5_ != 0F) {
+        output.writeFloat(6, arg5_);
+      }
+      if (arg6_ != 0F) {
+        output.writeFloat(7, arg6_);
+      }
+      if (arg7_ != 0F) {
+        output.writeFloat(8, arg7_);
+      }
     }
 
     public int getSerializedSize() {
@@ -226,6 +295,18 @@ public final class Data {
       if (arg4_ != 0F) {
         size += com.google.protobuf.CodedOutputStream
           .computeFloatSize(5, arg4_);
+      }
+      if (arg5_ != 0F) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFloatSize(6, arg5_);
+      }
+      if (arg6_ != 0F) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFloatSize(7, arg6_);
+      }
+      if (arg7_ != 0F) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFloatSize(8, arg7_);
       }
       memoizedSize = size;
       return size;
@@ -348,6 +429,12 @@ public final class Data {
 
         arg4_ = 0F;
 
+        arg5_ = 0F;
+
+        arg6_ = 0F;
+
+        arg7_ = 0F;
+
         return this;
       }
 
@@ -375,6 +462,9 @@ public final class Data {
         result.arg2_ = arg2_;
         result.arg3_ = arg3_;
         result.arg4_ = arg4_;
+        result.arg5_ = arg5_;
+        result.arg6_ = arg6_;
+        result.arg7_ = arg7_;
         onBuilt();
         return result;
       }
@@ -404,6 +494,15 @@ public final class Data {
         }
         if (other.getArg4() != 0F) {
           setArg4(other.getArg4());
+        }
+        if (other.getArg5() != 0F) {
+          setArg5(other.getArg5());
+        }
+        if (other.getArg6() != 0F) {
+          setArg6(other.getArg6());
+        }
+        if (other.getArg7() != 0F) {
+          setArg7(other.getArg7());
         }
         onChanged();
         return this;
@@ -560,6 +659,84 @@ public final class Data {
         onChanged();
         return this;
       }
+
+      private float arg5_ ;
+      /**
+       * <code>optional float arg5 = 6;</code>
+       */
+      public float getArg5() {
+        return arg5_;
+      }
+      /**
+       * <code>optional float arg5 = 6;</code>
+       */
+      public Builder setArg5(float value) {
+        
+        arg5_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional float arg5 = 6;</code>
+       */
+      public Builder clearArg5() {
+        
+        arg5_ = 0F;
+        onChanged();
+        return this;
+      }
+
+      private float arg6_ ;
+      /**
+       * <code>optional float arg6 = 7;</code>
+       */
+      public float getArg6() {
+        return arg6_;
+      }
+      /**
+       * <code>optional float arg6 = 7;</code>
+       */
+      public Builder setArg6(float value) {
+        
+        arg6_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional float arg6 = 7;</code>
+       */
+      public Builder clearArg6() {
+        
+        arg6_ = 0F;
+        onChanged();
+        return this;
+      }
+
+      private float arg7_ ;
+      /**
+       * <code>optional float arg7 = 8;</code>
+       */
+      public float getArg7() {
+        return arg7_;
+      }
+      /**
+       * <code>optional float arg7 = 8;</code>
+       */
+      public Builder setArg7(float value) {
+        
+        arg7_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional float arg7 = 8;</code>
+       */
+      public Builder clearArg7() {
+        
+        arg7_ = 0F;
+        onChanged();
+        return this;
+      }
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
         return this;
@@ -632,9 +809,10 @@ public final class Data {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\ndata.proto\"N\n\006Sensor\022\014\n\004arg0\030\001 \001(\002\022\014\n\004" +
+      "\n\ndata.proto\"x\n\006Sensor\022\014\n\004arg0\030\001 \001(\002\022\014\n\004" +
       "arg1\030\002 \001(\002\022\014\n\004arg2\030\003 \001(\002\022\014\n\004arg3\030\004 \001(\002\022\014" +
-      "\n\004arg4\030\005 \001(\002b\006proto3"
+      "\n\004arg4\030\005 \001(\002\022\014\n\004arg5\030\006 \001(\002\022\014\n\004arg6\030\007 \001(\002" +
+      "\022\014\n\004arg7\030\010 \001(\002b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -653,7 +831,7 @@ public final class Data {
     internal_static_Sensor_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_Sensor_descriptor,
-        new java.lang.String[] { "Arg0", "Arg1", "Arg2", "Arg3", "Arg4", });
+        new java.lang.String[] { "Arg0", "Arg1", "Arg2", "Arg3", "Arg4", "Arg5", "Arg6", "Arg7", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
