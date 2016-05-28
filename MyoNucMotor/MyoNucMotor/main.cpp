@@ -54,7 +54,7 @@ int main() {		// Myo, Serial, Socket
 		CSerialPort port;
 //		if (!port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY))
 		if (!port.Open(L"COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY))
-			if (!port.Open(L"\\\\.\\COM14", CBR_115200, 8, ONESTOPBIT, NOPARITY))
+			if (!port.Open(L"\\\\.\\COM17", CBR_115200, 8, ONESTOPBIT, NOPARITY))
 				return 1;
 		port.SetTimeout(10, 10, 1);
 
@@ -199,82 +199,86 @@ int main() {		// Myo, Serial, Socket
 						buff2.substr(0, buff2.find_first_of("\n"))	;
 
 //				std::string s = buff1.substr(0, buff1.find_first_of("\n"));
-//				std::cout << "Parsed: " << s << std::endl;
+				std::cout << "Parsed: " << s << std::endl;
 
 				try {
+
+					sensor.set_arg0((float) Lmove);
+					sensor.set_arg1((float) Rmove);
+
 					float f;
 
 					if (s.find(",") != std::string::npos) {
 						f = std::stof(s.substr(0, s.find_first_of(',')));
 						f = f == 0 ? -1 : f;
-						sensor.set_arg0(f);
+						sensor.set_arg2(f);
 //						std::cout << "arg0: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
 						f = f == 0 ? -1 : f;
-//						sensor.set_arg0(f);
-						std::cout << "arg0: " << f << std::endl;
+						sensor.set_arg2(f);
+//						std::cout << "arg0: " << f << std::endl;
 					}
 
 					if (s.find(",") != std::string::npos) {
 						f = std::stof(s.substr(0, s.find_first_of(',')));
 						f = f == 0 ? -1 : f;
-						sensor.set_arg1(f);
+						sensor.set_arg3(f);
 //						std::cout << "arg1: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
 						f = f == 0 ? -1 : f;
-						sensor.set_arg1(f);
+						sensor.set_arg3(f);
 //						std::cout << "arg1: " << f << std::endl;
 					}
 
 					if (s.find(",") != std::string::npos) {
 						f = std::stof(s.substr(0, s.find_first_of(',')));
 						Lmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg2(f);
-//						std::cout << "arg2: " << f << std::endl;
-						s = s.substr(s.find_first_of(',') + 1);
-					}
-					else {
-						f = std::stof(s.substr(0, s.find_first_of('\n')));
-						Lmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg2(f);
-//						std::cout << "arg2: " << f << std::endl;
-					}
-
-					if (s.find(",") != std::string::npos) {
-						f = std::stof(s.substr(0, s.find_first_of(',')));
-						Rmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg3(f);
-//						std::cout << "arg3: " << f << std::endl;
-						s = s.substr(s.find_first_of(',') + 1);
-					}
-					else {
-						f = std::stof(s.substr(0, s.find_first_of('\n')));
-						Rmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg3(f);
-//						std::cout << "arg3: " << f << std::endl;
-					}
-
-					if (s.find(",") != std::string::npos) {
-						f = std::stof(s.substr(0, s.find_first_of(',')));
 						f = f == 0 ? -1 : f;
 						sensor.set_arg4(f);
+//						std::cout << "arg2: " << f << std::endl;
+						s = s.substr(s.find_first_of(',') + 1);
+					}
+					else {
+						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						Lmove += f;
+						f = f == 0 ? -1 : f;
+						sensor.set_arg4(f);
+//						std::cout << "arg2: " << f << std::endl;
+					}
+
+					if (s.find(",") != std::string::npos) {
+						f = std::stof(s.substr(0, s.find_first_of(',')));
+						Rmove += f;
+						f = f == 0 ? -1 : f;
+						sensor.set_arg5(f);
+//						std::cout << "arg3: " << f << std::endl;
+						s = s.substr(s.find_first_of(',') + 1);
+					}
+					else {
+						f = std::stof(s.substr(0, s.find_first_of('\n')));
+						Rmove += f;
+						f = f == 0 ? -1 : f;
+						sensor.set_arg5(f);
+//						std::cout << "arg3: " << f << std::endl;
+					}
+
+					if (s.find(",") != std::string::npos) {
+						f = std::stof(s.substr(0, s.find_first_of(',')));
+						f = f == 0 ? -1 : f;
+						sensor.set_arg6(f);
 //						std::cout << "arg4: " << f << std::endl;
 						s = s.substr(s.find_first_of(',') + 1);
 					}
 					else {
 						f = std::stof(s.substr(0, s.find_first_of('\n')));
 						f = f == 0 ? -1 : f;
-						sensor.set_arg4(f);
+						sensor.set_arg6(f);
 //						std::cout << "arg4: " << f << std::endl;
 					}
 
