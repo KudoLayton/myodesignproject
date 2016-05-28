@@ -124,6 +124,24 @@ class Sensor : public ::google::protobuf::Message {
   float arg4() const;
   void set_arg4(float value);
 
+  // optional float arg5 = 6;
+  void clear_arg5();
+  static const int kArg5FieldNumber = 6;
+  float arg5() const;
+  void set_arg5(float value);
+
+  // optional float arg6 = 7;
+  void clear_arg6();
+  static const int kArg6FieldNumber = 7;
+  float arg6() const;
+  void set_arg6(float value);
+
+  // optional float arg7 = 8;
+  void clear_arg7();
+  static const int kArg7FieldNumber = 8;
+  float arg7() const;
+  void set_arg7(float value);
+
   // @@protoc_insertion_point(class_scope:Sensor)
  private:
 
@@ -134,6 +152,9 @@ class Sensor : public ::google::protobuf::Message {
   float arg2_;
   float arg3_;
   float arg4_;
+  float arg5_;
+  float arg6_;
+  float arg7_;
   mutable int _cached_size_;
   friend void  protobuf_AddDesc_data_2eproto();
   friend void protobuf_AssignDesc_data_2eproto();
@@ -218,6 +239,48 @@ inline void Sensor::set_arg4(float value) {
   
   arg4_ = value;
   // @@protoc_insertion_point(field_set:Sensor.arg4)
+}
+
+// optional float arg5 = 6;
+inline void Sensor::clear_arg5() {
+  arg5_ = 0;
+}
+inline float Sensor::arg5() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg5)
+  return arg5_;
+}
+inline void Sensor::set_arg5(float value) {
+  
+  arg5_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg5)
+}
+
+// optional float arg6 = 7;
+inline void Sensor::clear_arg6() {
+  arg6_ = 0;
+}
+inline float Sensor::arg6() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg6)
+  return arg6_;
+}
+inline void Sensor::set_arg6(float value) {
+  
+  arg6_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg6)
+}
+
+// optional float arg7 = 8;
+inline void Sensor::clear_arg7() {
+  arg7_ = 0;
+}
+inline float Sensor::arg7() const {
+  // @@protoc_insertion_point(field_get:Sensor.arg7)
+  return arg7_;
+}
+inline void Sensor::set_arg7(float value) {
+  
+  arg7_ = value;
+  // @@protoc_insertion_point(field_set:Sensor.arg7)
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS
