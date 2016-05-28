@@ -24,6 +24,9 @@
 
 #define Car_L 15
 #define Car_d 20
+#define Whell_r 3
+#define rpm2cm_s (3*3.141592/60)
+#define motor_delay 20
 
 void ErrorHandling(char* message);
 void client_connect(SOCKET, char *, Sensor *);
@@ -31,6 +34,40 @@ void client_send(SOCKET hClientSock, char *tcpBuffer, Sensor *sensor);
 std::stack<std::thread*> clientThreads;
 std::mutex tcpBuffer_mut;
 int tcpBuffer_check = 0;
+std::string sensor_parsing(Sensor *sensor, std::string s, int i, float *Lmove, float *Rmove) {
+	float f = 0;
+
+	if (i > 1)
+	if (s.find(",") != std::string::npos) {
+		f = std::stof(s.substr(0, s.find_first_of(',')));
+		s = s.substr(s.find_first_of(',') + 1);
+//		std::cout << i << ':' << s << f << std::endl;
+	}
+	else if (s.length() != 0) {
+//		std::cout << i << ':' << s << std::endl;
+		f = std::stof(s);
+		s = "";
+	}
+	else
+		f = 0;
+
+//	std::cout << i << ':' << s << std::endl;
+	f = f == 0 ? -1 : f;
+
+	switch (i) {
+	case 0: sensor->set_arg0(*Lmove * rpm2cm_s); break;		// Lmove
+	case 1: sensor->set_arg1(*Rmove * rpm2cm_s); break;		// Rmove
+	case 2: sensor->set_arg2(f * rpm2cm_s); break;		// set vel
+	case 3: sensor->set_arg3(f * rpm2cm_s); break;		// set vel
+	case 4: *Lmove += f;  sensor->set_arg4(f * rpm2cm_s); break;		// d Lmove (d = 1s)
+	case 5: *Rmove += f;  sensor->set_arg5(f * rpm2cm_s); break;		// d Rmove (d = 1s)
+	case 6: sensor->set_arg6(f * rpm2cm_s); break;		// tempurater
+	case 7: sensor->set_arg7(f * rpm2cm_s); break;		// dummy
+	default:;
+	}
+
+	return s;
+}
 
 int main() {		// Myo, Serial, Socket
 	try {
@@ -202,12 +239,22 @@ int main() {		// Myo, Serial, Socket
 				std::cout << "Parsed: " << s << std::endl;
 
 				try {
+/*					if( Lmove == 0 )
+						sensor.set_arg0((float) (-1));
+					else
+						sensor.set_arg0((float) Lmove);
+					if (Rmove == 0)
+						sensor.set_arg1((float)(-1));
+					else
+						sensor.set_arg1((float) Rmove);
 
-					sensor.set_arg0((float) Lmove);
-					sensor.set_arg1((float) Rmove);
-
-					float f;
-
+					std::cout << Lmove << '\t' << Rmove << std::endl;
+*/
+					for (int i = 0; i < 8; i++) {
+//						std::cout << i << ':' << s << std::endl;
+						s = sensor_parsing(&sensor, s, i, &Lmove, &Rmove);
+					}
+/*
 					if (s.find(",") != std::string::npos) {
 						f = std::stof(s.substr(0, s.find_first_of(',')));
 						f = f == 0 ? -1 : f;
@@ -266,6 +313,7 @@ int main() {		// Myo, Serial, Socket
 						f = f == 0 ? -1 : f;
 						sensor.set_arg5(f);
 //						std::cout << "arg3: " << f << std::endl;
+						f = 0;
 					}
 
 					if (s.find(",") != std::string::npos) {
@@ -281,6 +329,9 @@ int main() {		// Myo, Serial, Socket
 						sensor.set_arg6(f);
 //						std::cout << "arg4: " << f << std::endl;
 					}
+
+					sensor.set_arg7((float) (-1));
+					*/
 
 //					std::lock_guard<std::mutex> guard(tcpBuffer_mut);
 //					tcpBuffer_mut.lock();
@@ -355,7 +406,7 @@ void client_send(SOCKET hClientSock, char *tcpBuffer, Sensor *sensor) {
 
 	while (1) {
 //		for (int i=0; i < 1000; i++);
-		Sleep(20);
+		Sleep(motor_delay);	// 20ms
 //		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		try {
 //			std::lock_guard<std::mutex> guard(tcpBuffer_mut);
