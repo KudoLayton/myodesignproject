@@ -2,121 +2,93 @@
 #include <windows.h>
 #include "stdafx.h"
 #include "SerialPort.h"
+#include <iostream> //추가함
+#include <string>  //추가함
+#include <fstream> //추가함 
 
-// Myo Connect
-#include "DataCollector.h"
-
-//#define SERIAL_COMM			// define if serial communication mode
-#define MYO_COMMAND				// define if myo command mode
-#define PORT_NAME L"COM3"
+#define PORT_BTHCTRL L"\\\\.\\COM23"
+#define PORT_CAMMOTOR L"\\\\.\\COM18"
 
 int main(int argc, char** argv)
 {
-#ifdef SERIAL_COMM
 	//	setlocale(LC_ALL, "");      //지역화 설정을 전역적으로 적용
 
-	CSerialPort port;
-	port.Open(PORT_NAME, CBR_9600, 8, ONESTOPBIT, NOPARITY);
-	port.SetTimeout(10, 10, 1);
+	CSerialPort port_bthctrl;
+	if (!port_bthctrl.Open(PORT_BTHCTRL, CBR_9600, 8, ONESTOPBIT, NOPARITY))
+		return 1;
+	port_bthctrl.SetTimeout(10, 10, 1);
+
+	CSerialPort port_cammotor;
+	if (!port_cammotor.Open(PORT_CAMMOTOR, CBR_9600, 8, ONESTOPBIT, NOPARITY))
+		return 1;
+	port_cammotor.SetTimeout(10, 10, 1);
 
 	int n;
 	char buff[1024];
+	char **context = (char **)malloc(sizeof(char) * 1024);
 
+	int i = 0,j=0;
 	while (1) {
-		std::cout << "\nWRITE: ";
-		std::cin >> buff;
+		/*
+//		std::cout << "\nWRITE: ";
+//		std::cin >> buff;
 
-		n = strlen(buff);
+//		n = strlen(buff);
 
 		// write from port
-		port.Write(buff, n);
-
-		Sleep(100);
-
-		// read from port
-		n = port.Read(buff, 1024);
-
-		std::wcout << "READ: " << buff << " (" << n << ')';
-	};
-	/*
-	CSerialPort com1;
-	com1.Open("\\\\.\\COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY);
-	com1.SetTimeout(10, 10, 1);
-
-	int n;
-	char buff[1024];
-
-	while (1) {
-		printf("\nWRITE: ");
-		scanf("%s", buff);
-		n = strlen(buff);
-
-		com1.Write(buff, n);
-
-		Sleep(100);
-
-		n = com1.Read(buff, 1024);
-
-		printf("READ: %s (%d)", buff, n);
-	};
+//		port.Write(buff, n);
 	*/
 
+		Sleep(100); //100ms를 쉬는것 while 기다려라 프로그램으 멈추고 받는거랑 보내는 괴리 싱크 - 읽는것 받는거를 쉬는거 
+			//에러다싶으면 flush쓴다
+
+		// read from port
+		n = port_bthctrl.Read(buff, 1024);
+		char* pch = strtok_s(buff, "\n", context);
+		char *ptr;
+
+		float f[4] = {2,2,2,2}; //값이 안나올때 초기값을 2로잡아서 에러처리
+
+		f[1] = strtof(pch, &ptr);
+		f[2] = strtof(ptr+1, &ptr);
+		f[3] = strtof(ptr+1, &ptr);
+		f[4] = strtof(ptr+1, &ptr);
+
+//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
+		std::cout << '\r' << f[1] << "\t" << f[2] << "\t" << f[3] << "\t" << f[4];
+		char camtheta[2];
+
+		if (f[3] <= -0.3) {
+			camtheta[0] += 1;
+			camtheta[0] = camtheta[1] > 15 ? 15 : camtheta[0];
+		}
+		else if (f[3] >= 0.3) {
+			camtheta[0] -= 1;
+			camtheta[0] = camtheta[0] < 0 ? 0 : camtheta[0];
+		}
+		else
+			camtheta[0] = 8;
+
+
+		if (f[4] <= -0.3) {
+			camtheta[1] += 1;
+			camtheta[1] = camtheta[1] > 15 ? 15 : camtheta[1];
+		}
+		else if (f[4] >= 0.3) {
+			camtheta[1] -= 1;
+			camtheta[1] = camtheta[1] < 0 ? 0 : camtheta[1];
+		}
+		else
+			camtheta[1] = 8;
+		//		std::cin >> (char) hor >> "\t" >> (char) ver;
+//			(int)(f[4] * 8) + 8;
+		port_cammotor.Write(camtheta, sizeof(char) * 2);
+
+		std::cout << '\t' << (int)camtheta[0] << '\t' << (int)camtheta[1] << "\t";
+		i++;
+
+	};
+
 	return 0;
-#endif
-
-#ifdef MYO_COMMAND
-
-	// We catch any exceptions that might occur below -- see the catch statement for more details.
-	try {
-
-		// First, we create a Hub with our application identifier. Be sure not to use the com.example namespace when
-		// publishing your application. The Hub provides access to one or more Myos.
-		myo::Hub hub("com.example.hello-myo");
-//		myo::Hub hub("myodesignproject");
-		hub.setLockingPolicy(myo::Hub::lockingPolicyNone);
-
-		std::cout << "Attempting to find a Myo..." << std::endl;
-
-		// Next, we attempt to find a Myo to use. If a Myo is already paired in Myo Connect, this will return that Myo
-		// immediately.
-		// waitForMyo() takes a timeout value in milliseconds. In this case we will try to find a Myo for 10 seconds, and
-		// if that fails, the function will return a null pointer.
-		myo::Myo* myo = hub.waitForMyo(10000);
-
-		// If waitForMyo() returned a null pointer, we failed to find a Myo, so exit with an error message.
-		if (!myo) {
-			throw std::runtime_error("Unable to find a Myo!");
-		}
-
-		// We've found a Myo.
-		std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
-
-		// Next we construct an instance of our DeviceListener, so that we can register it with the Hub.
-		DataCollector collector;
-
-		// Hub::addListener() takes the address of any object whose class inherits from DeviceListener, and will cause
-		// Hub::run() to send events to all registered device listeners.
-		hub.addListener(&collector);
-
-		// Finally we enter our main loop.
-		while (1) {
-			// In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
-			// In this case, we wish to update our display 20 times a second, so we run for 1000/20 milliseconds.
-			hub.run(1000 / 20);
-			// After processing events, we call the print() member function we defined above to print out the values we've
-			// obtained from any events that have occurred.
-			collector.print();
-		}
-
-		// If a standard exception occurred, we print out its message and exit.
-	}
-	catch (const std::exception& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
-		std::cerr << "Press enter to continue.";
-		std::cin.ignore();
-		return 1;
-	}
-
-#endif
 
 }
