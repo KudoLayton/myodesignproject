@@ -6,7 +6,7 @@
 #include <string>  //추가함
 #include <fstream> //추가함 
 
-#define PORT_BTHCTRL L"\\\\.\\COM23"
+#define PORT_BTHCTRL L"\\\\.\\COM19"
 #define PORT_CAMMOTOR L"\\\\.\\COM18"
 
 int main(int argc, char** argv)
