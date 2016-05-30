@@ -56,14 +56,17 @@ std::string sensor_parsing(Sensor *sensor, std::string s, int i, float *Lmove, f
 			f = 0;
 
 	//	std::cout << i << ':' << s << std::endl;
-	f = f == 0 ? -1 : f * rpm2cm_s;		// rpm2 cm/s ans if zero turn to -1.
+	if (i < 6)
+		f = f == 0 ? -1 : f * rpm2cm_s;		// rpm2 cm/s ans if zero turn to -1.
+	if (i == 7)
+		f = f / 100;
 	switch (i) {
-	case 0: sensor->set_arg0(*Lmove); break;		// Lmove
-	case 1: sensor->set_arg1(*Rmove); break;		// Rmove
+	case 0: sensor->set_arg0(*Rmove); break;		// Rmove
+	case 1: sensor->set_arg1(*Lmove); break;		// Lmove
 	case 2: sensor->set_arg2(f); break;		// set vel
 	case 3: sensor->set_arg3(f); break;		// set vel
-	case 4: *Lmove += f;  sensor->set_arg4(f); break;		// d Lmove (d = 1s)
-	case 5: *Rmove += f;  sensor->set_arg5(f); break;		// d Rmove (d = 1s)
+	case 4: *Rmove += f;  sensor->set_arg4(f); break;		// d Rmove (d = 1s)
+	case 5: *Lmove += f;  sensor->set_arg5(f); break;		// d Lmove (d = 1s)
 	case 6: sensor->set_arg6(f); break;		// tempurater
 	case 7: sensor->set_arg7(f); break;		// dummy
 	default:;
@@ -191,7 +194,7 @@ int main() {		// Myo, Serial, Socket
 		float Lmove = 0;
 		float Rmove = 0;
 
-		char camtheta[2] = {8, 8};
+		char camtheta = 8<<4+8;
 
 		int time = 0;
 		while (1) {
@@ -232,6 +235,7 @@ int main() {		// Myo, Serial, Socket
 			n = port.Read(buff, 1024);
 			std::string buff1 = buff;
 
+//			std::cout << "\rTotal Read: " << buff1.substr(0, n);
 			buff1.erase(std::unique(buff1.begin(), buff1.end(),
 				[](char a, char b) { return a == '\n' && b == '\n'; }), buff1.end());
 			if (buff1.find_first_of("\n") == 0)
@@ -239,8 +243,8 @@ int main() {		// Myo, Serial, Socket
 
 			std::string buff2 = buff1.substr(buff1.find_first_of('\n') + 1);
 			std::string buff3 = buff2.substr(buff2.find_first_of('\n') + 1);
+//			std::cout << "\rTotal Read: " << buff1.substr(0, n);
 			/*
-			std::cout << "Total Read: " << buff1.substr(0, n) << std::endl;
 
 			std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
 			std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
@@ -256,8 +260,6 @@ int main() {		// Myo, Serial, Socket
 					buff2.substr(0, buff2.find_first_of("\n"));
 
 				//				std::string s = buff1.substr(0, buff1.find_first_of("\n"));
-				std::cout << "Parsed: " << s << std::endl;
-
 				try {
 					/*					if( Lmove == 0 )
 					sensor.set_arg0((float) (-1));
@@ -270,9 +272,12 @@ int main() {		// Myo, Serial, Socket
 
 					std::cout << Lmove << '\t' << Rmove << std::endl;
 					*/
-					for (int i = 0; i < 8; i++) {
-						//						std::cout << i << ':' << s << std::endl;
-						s = sensor_parsing(&sensor, s, i, &Lmove, &Rmove);
+					if (std::count(s.begin(), s.end(), ',') > 4) {
+						std::cout << "Parsed: " << s << std::endl;
+						for (int i = 0; i < 8; i++) {
+							//						std::cout << i << ':' << s << std::endl;
+							s = sensor_parsing(&sensor, s, i, &Lmove, &Rmove);
+						}
 					}
 					/*
 					if (s.find(",") != std::string::npos) {
@@ -390,29 +395,29 @@ int main() {		// Myo, Serial, Socket
 				//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
 				std::cout << f[1] << "\t" << f[2] << "\t" << f[3] << "\t" << f[4];
 
-				if (f[3] <= -0.3) {
-					camtheta[0] += 1;
-					camtheta[0] = camtheta[1] > 15 ? 15 : camtheta[0];
-				}
-				else if (f[3] >= 0.3) {
-					camtheta[0] -= 1;
-					camtheta[0] = camtheta[0] < 0 ? 0 : camtheta[0];
-				}
-
-
 				if (f[4] <= -0.3) {
-					camtheta[1] += 1;
-					camtheta[1] = camtheta[1] > 15 ? 15 : camtheta[1];
+					camtheta += 1;
+					camtheta = (camtheta % (1 << 4)) > 15 ? 15 : camtheta;
 				}
 				else if (f[4] >= 0.3) {
-					camtheta[1] -= 1;
-					camtheta[1] = camtheta[1] < 0 ? 0 : camtheta[1];
+					camtheta -= 1;
+					camtheta = camtheta < 0 ? 0 : camtheta;
 				}
+
+				if (f[3] <= -0.3) {
+					camtheta += 1<<4;
+					camtheta = camtheta > 15<<4 ? 15<<4 : camtheta;
+				}
+				else if (f[3] >= 0.3) {
+					camtheta -= 1<<4;
+					camtheta = camtheta < 0 ? 0 : camtheta;
+				}
+
 				//		std::cin >> (char) hor >> "\t" >> (char) ver;
 				//			(int)(f[4] * 8) + 8;
-				port_cammotor.Write(camtheta, sizeof(char) * 2);
+				port_cammotor.Write(&camtheta, sizeof(char));
 
-				std::cout << "\t\t\t" << (int)camtheta[0] << '\t' << (int)camtheta[1] << "\t";
+				std::cout << "\t\t\t" << (int) (camtheta>>4) << '\t' << (int) (camtheta%(1<<4)) << "\t";
 
 			}
 
@@ -483,7 +488,7 @@ void client_send(SOCKET hClientSock, char *tcpBuffer, Sensor *sensor) {
 		catch (std::exception e) {
 			std::cout << "cannot send data!" << std::endl;
 		}
-		std::cout << "send: " << (*sensor).ByteSize() << std::endl;
+//		std::cout << "\rsend: " << (*sensor).ByteSize();
 	}
 
 }
