@@ -23,8 +23,8 @@
 #define PORT_BTHCTRL_COM L"\\\\.\\COM19"
 #define PORT_CAMMOTOR_COM L"\\\\.\\COM18"
 #define PORT_MOTOR_NUC L"COM3"
-#define PORT_BTHCTRL_NUC L"\\\\.\\COM10"
-#define PORT_CAMMOTOR_NUC L"COM5"
+#define PORT_BTHCTRL_NUC L"\\\\.\\COM19"
+#define PORT_CAMMOTOR_NUC L"\\\\.\\COM18"
 
 #define Car_L 15
 #define Car_d 20
@@ -202,7 +202,7 @@ int main() {		// Myo, Serial, Socket
 			hub.run(1000 / 20);
 			collector.print();
 
-			_speed = -std::sin(collector.theta) * Car_d / Car_L;
+			_speed = std::sin(collector.theta) * Car_d / Car_L;
 			_itoa_s((int)((1 - _speed) * collector.speed * 20), Lspeed, 10);
 			_itoa_s((int)((1 + _speed) * collector.speed * 20), Rspeed, 10);
 			//			std::cout << "theta: " << collector.theta << '\t' << _speed << std::endl;
@@ -387,33 +387,14 @@ int main() {		// Myo, Serial, Socket
 
 				float f[4] = { 2,2,2,2 }; //값이 안나올때 초기값을 2로잡아서 에러처리
 
-				f[0] = strtof(pch, &ptr);
-				f[1] = strtof(ptr + 1, &ptr);
+				f[1] = strtof(pch, &ptr);
 				f[2] = strtof(ptr + 1, &ptr);
 				f[3] = strtof(ptr + 1, &ptr);
+				f[4] = strtof(ptr + 1, &ptr);
 
 				//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
-				std::cout << f[0] << "\t" << f[1] << "\t" << f[2] << "\t" << f[3];
+				std::cout << f[1] << "\t" << f[2] << "\t" << f[3] << "\t" << f[4];
 
-<<<<<<< HEAD
-				if (f[2] <= -0.3) {
-					camtheta[0] += 1;
-					camtheta[0] = camtheta[1] > 15 ? 15 : camtheta[0];
-				}
-				else if (f[2] >= 0.3) {
-					camtheta[0] -= 1;
-					camtheta[0] = camtheta[0] < 0 ? 0 : camtheta[0];
-				}
-
-
-				if (f[3] <= -0.3) {
-					camtheta[1] += 1;
-					camtheta[1] = camtheta[1] > 15 ? 15 : camtheta[1];
-				}
-				else if (f[3] >= 0.3) {
-					camtheta[1] -= 1;
-					camtheta[1] = camtheta[1] < 0 ? 0 : camtheta[1];
-=======
 				if (f[4] <= -0.3) {
 					camtheta += 1;
 					camtheta = (camtheta % (1 << 4)) > 15 ? 15 : camtheta;
@@ -430,7 +411,6 @@ int main() {		// Myo, Serial, Socket
 				else if (f[3] >= 0.3) {
 					camtheta -= 1<<4;
 					camtheta = camtheta < 0 ? 0 : camtheta;
->>>>>>> feature/yys_nuc
 				}
 
 				//		std::cin >> (char) hor >> "\t" >> (char) ver;

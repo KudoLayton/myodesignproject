@@ -23,8 +23,8 @@
 #define PORT_BTHCTRL_COM L"\\\\.\\COM19"
 #define PORT_CAMMOTOR_COM L"\\\\.\\COM18"
 #define PORT_MOTOR_NUC L"COM3"
-#define PORT_BTHCTRL_NUC L"\\\\.\\COM10"
-#define PORT_CAMMOTOR_NUC L"COM5"
+#define PORT_BTHCTRL_NUC L"\\\\.\\COM19"
+#define PORT_CAMMOTOR_NUC L"\\\\.\\COM18"
 
 #define Car_L 15
 #define Car_d 20
@@ -56,17 +56,14 @@ std::string sensor_parsing(Sensor *sensor, std::string s, int i, float *Lmove, f
 			f = 0;
 
 	//	std::cout << i << ':' << s << std::endl;
-	if (i < 6)
-		f = f == 0 ? -1 : f * rpm2cm_s;		// rpm2 cm/s ans if zero turn to -1.
-	if (i == 7)
-		f = f / 100;
+	f = f == 0 ? -1 : f * rpm2cm_s;		// rpm2 cm/s ans if zero turn to -1.
 	switch (i) {
-	case 0: sensor->set_arg0(*Rmove); break;		// Rmove
-	case 1: sensor->set_arg1(*Lmove); break;		// Lmove
+	case 0: sensor->set_arg0(*Lmove); break;		// Lmove
+	case 1: sensor->set_arg1(*Rmove); break;		// Rmove
 	case 2: sensor->set_arg2(f); break;		// set vel
 	case 3: sensor->set_arg3(f); break;		// set vel
-	case 4: *Rmove += f;  sensor->set_arg4(f); break;		// d Rmove (d = 1s)
-	case 5: *Lmove += f;  sensor->set_arg5(f); break;		// d Lmove (d = 1s)
+	case 4: *Lmove += f;  sensor->set_arg4(f); break;		// d Lmove (d = 1s)
+	case 5: *Rmove += f;  sensor->set_arg5(f); break;		// d Rmove (d = 1s)
 	case 6: sensor->set_arg6(f); break;		// tempurater
 	case 7: sensor->set_arg7(f); break;		// dummy
 	default:;
@@ -194,7 +191,7 @@ int main() {		// Myo, Serial, Socket
 		float Lmove = 0;
 		float Rmove = 0;
 
-		char camtheta = 8<<4+8;
+		char camtheta[2] = {8, 8};
 
 		int time = 0;
 		while (1) {
@@ -202,7 +199,7 @@ int main() {		// Myo, Serial, Socket
 			hub.run(1000 / 20);
 			collector.print();
 
-			_speed = -std::sin(collector.theta) * Car_d / Car_L;
+			_speed = std::sin(collector.theta) * Car_d / Car_L;
 			_itoa_s((int)((1 - _speed) * collector.speed * 20), Lspeed, 10);
 			_itoa_s((int)((1 + _speed) * collector.speed * 20), Rspeed, 10);
 			//			std::cout << "theta: " << collector.theta << '\t' << _speed << std::endl;
@@ -235,7 +232,6 @@ int main() {		// Myo, Serial, Socket
 			n = port.Read(buff, 1024);
 			std::string buff1 = buff;
 
-//			std::cout << "\rTotal Read: " << buff1.substr(0, n);
 			buff1.erase(std::unique(buff1.begin(), buff1.end(),
 				[](char a, char b) { return a == '\n' && b == '\n'; }), buff1.end());
 			if (buff1.find_first_of("\n") == 0)
@@ -243,8 +239,8 @@ int main() {		// Myo, Serial, Socket
 
 			std::string buff2 = buff1.substr(buff1.find_first_of('\n') + 1);
 			std::string buff3 = buff2.substr(buff2.find_first_of('\n') + 1);
-//			std::cout << "\rTotal Read: " << buff1.substr(0, n);
 			/*
+			std::cout << "Total Read: " << buff1.substr(0, n) << std::endl;
 
 			std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
 			std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
@@ -260,6 +256,8 @@ int main() {		// Myo, Serial, Socket
 					buff2.substr(0, buff2.find_first_of("\n"));
 
 				//				std::string s = buff1.substr(0, buff1.find_first_of("\n"));
+				std::cout << "Parsed: " << s << std::endl;
+
 				try {
 					/*					if( Lmove == 0 )
 					sensor.set_arg0((float) (-1));
@@ -272,12 +270,9 @@ int main() {		// Myo, Serial, Socket
 
 					std::cout << Lmove << '\t' << Rmove << std::endl;
 					*/
-					if (std::count(s.begin(), s.end(), ',') > 4) {
-						std::cout << "Parsed: " << s << std::endl;
-						for (int i = 0; i < 8; i++) {
-							//						std::cout << i << ':' << s << std::endl;
-							s = sensor_parsing(&sensor, s, i, &Lmove, &Rmove);
-						}
+					for (int i = 0; i < 8; i++) {
+						//						std::cout << i << ':' << s << std::endl;
+						s = sensor_parsing(&sensor, s, i, &Lmove, &Rmove);
 					}
 					/*
 					if (s.find(",") != std::string::npos) {
@@ -387,57 +382,37 @@ int main() {		// Myo, Serial, Socket
 
 				float f[4] = { 2,2,2,2 }; //값이 안나올때 초기값을 2로잡아서 에러처리
 
-				f[0] = strtof(pch, &ptr);
-				f[1] = strtof(ptr + 1, &ptr);
+				f[1] = strtof(pch, &ptr);
 				f[2] = strtof(ptr + 1, &ptr);
 				f[3] = strtof(ptr + 1, &ptr);
+				f[4] = strtof(ptr + 1, &ptr);
 
 				//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
-				std::cout << f[0] << "\t" << f[1] << "\t" << f[2] << "\t" << f[3];
+				std::cout << f[1] << "\t" << f[2] << "\t" << f[3] << "\t" << f[4];
 
-<<<<<<< HEAD
-				if (f[2] <= -0.3) {
+				if (f[3] <= -0.3) {
 					camtheta[0] += 1;
 					camtheta[0] = camtheta[1] > 15 ? 15 : camtheta[0];
 				}
-				else if (f[2] >= 0.3) {
+				else if (f[3] >= 0.3) {
 					camtheta[0] -= 1;
 					camtheta[0] = camtheta[0] < 0 ? 0 : camtheta[0];
 				}
 
 
-				if (f[3] <= -0.3) {
+				if (f[4] <= -0.3) {
 					camtheta[1] += 1;
 					camtheta[1] = camtheta[1] > 15 ? 15 : camtheta[1];
 				}
-				else if (f[3] >= 0.3) {
+				else if (f[4] >= 0.3) {
 					camtheta[1] -= 1;
 					camtheta[1] = camtheta[1] < 0 ? 0 : camtheta[1];
-=======
-				if (f[4] <= -0.3) {
-					camtheta += 1;
-					camtheta = (camtheta % (1 << 4)) > 15 ? 15 : camtheta;
 				}
-				else if (f[4] >= 0.3) {
-					camtheta -= 1;
-					camtheta = camtheta < 0 ? 0 : camtheta;
-				}
-
-				if (f[3] <= -0.3) {
-					camtheta += 1<<4;
-					camtheta = camtheta > 15<<4 ? 15<<4 : camtheta;
-				}
-				else if (f[3] >= 0.3) {
-					camtheta -= 1<<4;
-					camtheta = camtheta < 0 ? 0 : camtheta;
->>>>>>> feature/yys_nuc
-				}
-
 				//		std::cin >> (char) hor >> "\t" >> (char) ver;
 				//			(int)(f[4] * 8) + 8;
-				port_cammotor.Write(&camtheta, sizeof(char));
+				port_cammotor.Write(camtheta, sizeof(char) * 2);
 
-				std::cout << "\t\t\t" << (int) (camtheta>>4) << '\t' << (int) (camtheta%(1<<4)) << "\t";
+				std::cout << "\t\t\t" << (int)camtheta[0] << '\t' << (int)camtheta[1] << "\t";
 
 			}
 
@@ -508,7 +483,7 @@ void client_send(SOCKET hClientSock, char *tcpBuffer, Sensor *sensor) {
 		catch (std::exception e) {
 			std::cout << "cannot send data!" << std::endl;
 		}
-//		std::cout << "\rsend: " << (*sensor).ByteSize();
+		std::cout << "send: " << (*sensor).ByteSize() << std::endl;
 	}
 
 }
