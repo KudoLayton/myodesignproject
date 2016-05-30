@@ -395,25 +395,6 @@ int main() {		// Myo, Serial, Socket
 				//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
 				std::cout << f[0] << "\t" << f[1] << "\t" << f[2] << "\t" << f[3];
 
-<<<<<<< HEAD
-				if (f[2] <= -0.3) {
-					camtheta[0] += 1;
-					camtheta[0] = camtheta[1] > 15 ? 15 : camtheta[0];
-				}
-				else if (f[2] >= 0.3) {
-					camtheta[0] -= 1;
-					camtheta[0] = camtheta[0] < 0 ? 0 : camtheta[0];
-				}
-
-
-				if (f[3] <= -0.3) {
-					camtheta[1] += 1;
-					camtheta[1] = camtheta[1] > 15 ? 15 : camtheta[1];
-				}
-				else if (f[3] >= 0.3) {
-					camtheta[1] -= 1;
-					camtheta[1] = camtheta[1] < 0 ? 0 : camtheta[1];
-=======
 				if (f[4] <= -0.3) {
 					camtheta += 1;
 					camtheta = (camtheta % (1 << 4)) > 15 ? 15 : camtheta;
@@ -430,7 +411,6 @@ int main() {		// Myo, Serial, Socket
 				else if (f[3] >= 0.3) {
 					camtheta -= 1<<4;
 					camtheta = camtheta < 0 ? 0 : camtheta;
->>>>>>> feature/yys_nuc
 				}
 
 				//		std::cin >> (char) hor >> "\t" >> (char) ver;
