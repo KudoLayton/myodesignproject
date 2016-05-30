@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements  MediaPlayer.OnEr
         args[1] = (TextView)findViewById(R.id.Arg1);
         args[2] = (TextView)findViewById(R.id.Arg2);
         args[3] = (TextView)findViewById(R.id.Arg3);
-        //args[4] = (Switch)findViewById(R.id.Arg4);
+        args[4] = (TextView)findViewById(R.id.Arg4);
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements  MediaPlayer.OnEr
             args[1].setText(textMsg[1]);
             args[2].setText(textMsg[2]);
             args[3].setText(textMsg[3]);
-           // args[4].setText(textMsg[4]);
+            args[4].setText(textMsg[4]);
         };
     };
 
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements  MediaPlayer.OnEr
                     temp = (((sensor.getArg4()==-1)?0:sensor.getArg4()) + ((sensor.getArg5()==-1)?0:sensor.getArg5())) / 200;
                     textMsg[2] = "Average Velocity: " + String.format("%.2f", temp) + "m/s";
                     textMsg[3] = "Temperature: " + String.format("%.2f", ((sensor.getArg6()==-1)?0:sensor.getArg6())) + "℃";
-                    textMsg[4] = "Dummy: " + sensor.getArg7();
+                    textMsg[4] = "Pressure: " + String.format("%.2f", ((sensor.getArg7()==-1)?0:sensor.getArg7())) + "hPa";
                     Message msg = mHandler.obtainMessage();
                     mHandler.sendMessage(msg);
                     i++;
