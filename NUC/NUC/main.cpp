@@ -190,6 +190,10 @@ int main() {		// Myo, Serial, Socket
 
 		float Lmove = 0;
 		float Rmove = 0;
+
+		char camtheta[2] = {8, 8};
+
+		int time = 0;
 		while (1) {
 			// myo comm
 			hub.run(1000 / 20);
@@ -370,49 +374,50 @@ int main() {		// Myo, Serial, Socket
 				}
 			}
 			//			std::cout << " (" << n << ')' << "\n";
-			n = port_bthctrl.Read(buff, 1024);
-			char* pch = strtok_s(buff, "\n", context);
-			char *ptr;
 
-			float f[4] = { 2,2,2,2 }; //값이 안나올때 초기값을 2로잡아서 에러처리
+			if (time % 2 == 0) {
+				n = port_bthctrl.Read(buff, 1024);
+				char* pch = strtok_s(buff, "\n", context);
+				char *ptr;
 
-			f[1] = strtof(pch, &ptr);
-			f[2] = strtof(ptr + 1, &ptr);
-			f[3] = strtof(ptr + 1, &ptr);
-			f[4] = strtof(ptr + 1, &ptr);
+				float f[4] = { 2,2,2,2 }; //값이 안나올때 초기값을 2로잡아서 에러처리
 
-			//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
-			std::cout << '\r' << f[1] << "\t" << f[2] << "\t" << f[3] << "\t" << f[4];
-			char camtheta[2];
+				f[1] = strtof(pch, &ptr);
+				f[2] = strtof(ptr + 1, &ptr);
+				f[3] = strtof(ptr + 1, &ptr);
+				f[4] = strtof(ptr + 1, &ptr);
 
-			if (f[3] <= -0.3) {
-				camtheta[0] += 1;
-				camtheta[0] = camtheta[1] > 15 ? 15 : camtheta[0];
+				//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
+				std::cout << f[1] << "\t" << f[2] << "\t" << f[3] << "\t" << f[4];
+
+				if (f[3] <= -0.3) {
+					camtheta[0] += 1;
+					camtheta[0] = camtheta[1] > 15 ? 15 : camtheta[0];
+				}
+				else if (f[3] >= 0.3) {
+					camtheta[0] -= 1;
+					camtheta[0] = camtheta[0] < 0 ? 0 : camtheta[0];
+				}
+
+
+				if (f[4] <= -0.3) {
+					camtheta[1] += 1;
+					camtheta[1] = camtheta[1] > 15 ? 15 : camtheta[1];
+				}
+				else if (f[4] >= 0.3) {
+					camtheta[1] -= 1;
+					camtheta[1] = camtheta[1] < 0 ? 0 : camtheta[1];
+				}
+				//		std::cin >> (char) hor >> "\t" >> (char) ver;
+				//			(int)(f[4] * 8) + 8;
+				port_cammotor.Write(camtheta, sizeof(char) * 2);
+
+				std::cout << "\t\t\t" << (int)camtheta[0] << '\t' << (int)camtheta[1] << "\t";
+
 			}
-			else if (f[3] >= 0.3) {
-				camtheta[0] -= 1;
-				camtheta[0] = camtheta[0] < 0 ? 0 : camtheta[0];
-			}
-			else
-				camtheta[0] = 8;
 
 
-			if (f[4] <= -0.3) {
-				camtheta[1] += 1;
-				camtheta[1] = camtheta[1] > 15 ? 15 : camtheta[1];
-			}
-			else if (f[4] >= 0.3) {
-				camtheta[1] -= 1;
-				camtheta[1] = camtheta[1] < 0 ? 0 : camtheta[1];
-			}
-			else
-				camtheta[1] = 8;
-			//		std::cin >> (char) hor >> "\t" >> (char) ver;
-			//			(int)(f[4] * 8) + 8;
-			port_cammotor.Write(camtheta, sizeof(char) * 2);
-
-			std::cout << '\t' << (int)camtheta[0] << '\t' << (int)camtheta[1] << "\t";
-
+			time++;
 		}
 		std::thread *p;
 		while (!clientThreads.empty()) {
