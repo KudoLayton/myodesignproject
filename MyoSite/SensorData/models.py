@@ -1,5 +1,14 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.utils import timezone
 
-# Create your models here.
+class Data(models.Model):
+	#measure time
+	measureTime = DateTimeField(default=timezone.now)
+
+	#temperature(celcious)
+	temperature = FloatField()
+
+	def __str__(self):
+		return self.measureTime
