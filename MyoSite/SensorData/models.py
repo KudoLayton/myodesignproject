@@ -11,4 +11,4 @@ class Data(models.Model):
 	temperature = models.FloatField()
 
 	def __str__(self):
-		return self.measureTime
+		return self.measureTime + ": " + temperature
