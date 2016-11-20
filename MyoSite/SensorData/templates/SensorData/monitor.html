@@ -12,7 +12,7 @@
 		<canvas id="player" style="background: #000;">
 		</canvas>
 	</body>
-	<script src="mjpeg.js"></script>
+	<script src="{% static 'js/mjpeg.js' %}"></script>
 	<script>
     var player = new MJPEG.Player("player", "http://192.168.0.6:8080/test");
     player.start();
