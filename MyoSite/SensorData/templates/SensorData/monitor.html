@@ -10,9 +10,17 @@
 	</head>
 	<body>
 		<h1>Myo Car Monitoring Centor</h1>
-		<!--<canvas id="player" style="background: #000;">
-		</canvas>-->
-		<img src="http://192.168.0.6:8080/test"></img>
+		<canvas id='test_canvas' width='640px' height='480px' style='border:1px solid #d3d3d3'>
+    	</canvas>
+    	<script language="JavaScript">
+      	var ctx = document.getElementById('test_canvas').getContext('2d');
+      	var img = new Image();
+      	img.onload = function() {
+        	ctx.drawImage(img, 0, 0);
+      	};
+      	var theDate = new Date();
+      	img.src = "http://192.168.0.6:8080/test";
+    </script>
 	</body>
 	<!--<script src="{% static 'js/mjpeg.js' %}"></script>
 	<script>
