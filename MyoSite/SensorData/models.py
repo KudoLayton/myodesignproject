@@ -4,6 +4,9 @@ from django.db import models
 from django.utils import timezone
 
 class Data(models.Model):
+	#ip
+	ip = models.CharField(max_length=100)
+
 	#measure time
 	measureTime = models.DateTimeField(default=timezone.now)
 
