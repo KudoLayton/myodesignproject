@@ -20,6 +20,10 @@
       	};
       	var theDate = new Date();
       	img.src = "http://192.168.0.6:8080/test";
+      	window.setInterval("refreshCanvas()", 10);
+		function refreshCanvas(){
+		  ctx.drawImage(img, 0, 0);
+		};
     </script>
 	</body>
 	<!--<script src="{% static 'js/mjpeg.js' %}"></script>
