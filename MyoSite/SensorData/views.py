@@ -3,12 +3,14 @@ from django.shortcuts import render
 from django.utils import timezone
 from mjpegtools import MjpegParser
 from models import Data
+from django.views.decorators.csrf import csrf_exempt
 
 def monitor(request):
 	image = MjpegParser(url='http://192.168.0.6:8080/test.mjpg').serve()
 	
 	return HttpResponse(image.as_mjpeg())
 
+@csrf_exempt
 def input(request):
 	new_ip = request.META['REMOTE_ADDR']
 	new_temp = 0
