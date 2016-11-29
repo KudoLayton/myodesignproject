@@ -4,11 +4,18 @@ from django.utils import timezone
 from mjpegtools import MjpegParser
 from models import Data
 from django.views.decorators.csrf import csrf_exempt
+from django.core import serializers
 
 def monitor(request):
-	image = MjpegParser(url='http://192.168.0.6:8080/test.mjpg').serve()
+	lastdata = Data.objects.last()
 	
 	return HttpResponse(image.as_mjpeg())
+
+def getData(request):
+	lastdata = Data.objects.last()
+	sendData = serializers.deserialize("json", lastdata)
+	return HttpResponse(sendData)
+
 
 @csrf_exempt
 def input(request):

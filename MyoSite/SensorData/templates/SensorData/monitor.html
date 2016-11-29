@@ -10,14 +10,19 @@
 	</head>
 	<body>
 		<h1>Myo Car Monitoring Centor</h1>
-		<canvas id="player" style="background: #000;">
+		<!--<canvas id="player" style="background: #000;">
 	      Your browser sucks.
-	    </canvas>
-    </script>
+	    </canvas>-->
+	    <h2>Temperature</h2>
+	    <div id="temperature"></div>
 	</body>
-	<script src="{% static 'js/mjpeg.js' %}"></script>
+	<!--<script src="{% static 'js/mjpeg.js' %}"></script>
 	<script>
     var player = new MJPEG.Player("player", "http://192.168.0.6:8080/test.mjpeg");
     player.start();
+  	</script>-->
+  	<script src="{% static 'js/data.js' %}"></script>
+  	<script>
+  		getData();
   	</script>
 </html>
