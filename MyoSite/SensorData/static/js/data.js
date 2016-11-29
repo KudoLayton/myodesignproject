@@ -10,5 +10,4 @@ function getData(){
 		}
 	}
 	xhr.send(null);
-	setInterval(getData, 1000);
 }
