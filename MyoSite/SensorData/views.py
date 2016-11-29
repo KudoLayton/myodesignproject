@@ -16,3 +16,4 @@ def input(request):
 		new_temp = float(request.POST.get('temp'))
 	data = Data(ip=new_ip, measureTime=timezone.now(), temperature=new_temp)
 	data.save()
+	return HttpResponse(data)
