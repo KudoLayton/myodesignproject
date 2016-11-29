@@ -9,6 +9,7 @@ from django.core import serializers
 def monitor(request):	
 	return render(request, 'SensorData/monitor.html', {})
 
+@csrf_exempt
 def getData(request):
 	lastdata = Data.objects.last()
 	sendData = serializers.deserialize("json", lastdata)
