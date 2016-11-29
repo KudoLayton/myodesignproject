@@ -6,10 +6,8 @@ from models import Data
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 
-def monitor(request):
-	lastdata = Data.objects.last()
-	
-	return HttpResponse(image.as_mjpeg())
+def monitor(request):	
+	return render(request, 'SensorData/monitor.html', {})
 
 def getData(request):
 	lastdata = Data.objects.last()
