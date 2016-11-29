@@ -7,6 +7,7 @@ function getData(){
 				data = JSON.parse(xhr.responseText);
 				document.getElementById("temperature").innerHTML = data[0].fields.temperature; 
 			}
+			setInterval(getData, 1000);
 		}
 	}
 	xhr.send(null);
