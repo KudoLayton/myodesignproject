@@ -11,7 +11,7 @@ def monitor(request):
 
 @csrf_exempt
 def getData(request):
-	lastdata = Data.objects.all().last()
+	lastdata = Data.objects.latest('id')
 	sendData = serializers.serialize("json", lastdata)
 	return HttpResponse(sendData)
 
