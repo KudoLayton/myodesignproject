@@ -4,9 +4,8 @@ function getData(){
 	xhr.onreadystatechange = function(){
 		if(xhr.readyState === 4){
 			if(xhr.status === 200){
-				//data = JSON.parse(xhr.responseText);
-				//document.getElementById("temperature").innerHTML = data.temperature;
-				document.getElementById("temperature").innerHTML = xhr.responseText;
+				data = JSON.parse(xhr.responseText);
+				document.getElementById("temperature").innerHTML = data.fields.temperature;
 			}
 		}
 	}
