@@ -28,46 +28,6 @@
 #define rpm2cm_s (3*3.141592/60)
 #define motor_delay 20
 
-void ErrorHandling(char* message);
-void client_connect(SOCKET, char *, Sensor *);
-void client_send(SOCKET hClientSock, char *tcpBuffer, Sensor *sensor);
-std::stack<std::thread*> clientThreads;
-std::mutex tcpBuffer_mut;
-int tcpBuffer_check = 0;
-std::string sensor_parsing(Sensor *sensor, std::string s, int i, float *Lmove, float *Rmove) {
-	float f = 0;
-
-	if (i > 1)
-	if (s.find(",") != std::string::npos) {
-		f = std::stof(s.substr(0, s.find_first_of(',')));
-		s = s.substr(s.find_first_of(',') + 1);
-//		std::cout << i << ':' << s << f << std::endl;
-	}
-	else if (s.length() != 0) {
-//		std::cout << i << ':' << s << std::endl;
-		f = std::stof(s);
-		s = "";
-	}
-	else
-		f = 0;
-
-//	std::cout << i << ':' << s << std::endl;
-	f = f == 0 ? -1 : f * rpm2cm_s;		// rpm2 cm/s ans if zero turn to -1.
-	switch (i) {
-	case 0: sensor->set_arg0(*Lmove); break;		// Lmove
-	case 1: sensor->set_arg1(*Rmove); break;		// Rmove
-	case 2: sensor->set_arg2(f); break;		// set vel
-	case 3: sensor->set_arg3(f); break;		// set vel
-	case 4: *Lmove += f;  sensor->set_arg4(f); break;		// d Lmove (d = 1s)
-	case 5: *Rmove += f;  sensor->set_arg5(f); break;		// d Rmove (d = 1s)
-	case 6: sensor->set_arg6(f); break;		// tempurater
-	case 7: sensor->set_arg7(f); break;		// dummy
-	default:;
-	}
-
-	return s;
-}
-
 int main() {		// Myo, Serial, Socket
 	try {
 		// myo connect
@@ -111,61 +71,6 @@ int main() {		// Myo, Serial, Socket
 //		std::string pch3 = buff1.substr(0, n);
 		std::cout << buff1.substr(0, n) << " (" << n << ')' << std::endl;
 
-		// socket open
-		GOOGLE_PROTOBUF_VERIFY_VERSION;
-		WSADATA wsaData;
-		SOCKET hServerSock, hClientSock;
-		SOCKADDR_IN serverAddr, clientAddr;
-		int sizeClientAddr;
-		int result;
-
-		// socket open - 1. WSAStart
-		std::cout << "WSAStartup" << std::endl;
-		result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		if (result != 0)
-		{
-			ErrorHandling("WSAStartup() error");
-		}
-		std::cout << "WSAStartup finished" << std::endl;
-
-		// socket open - 2. socket open
-		std::cout << "socket open" << std::endl;
-		hServerSock = socket(PF_INET, SOCK_STREAM, 0);
-		if (hServerSock == INVALID_SOCKET)
-		{
-			ErrorHandling("socket() error");
-		}
-		std::cout << "socket open finished" << std::endl;
-
-		// socket open - 3. bind socket with port
-		std::cout << "bind socket" << std::endl;
-		memset(&serverAddr, 0, sizeof(serverAddr));
-		serverAddr.sin_family = AF_INET;
-		serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-		serverAddr.sin_port = htons(atoi("9000"));
-
-		result = bind(hServerSock, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
-		if (result == SOCKET_ERROR)
-		{
-			ErrorHandling("bind() error");
-		}
-		std::cout << "bind socket finished" << std::endl;
-
-		//listen
-		std::cout << "listen client..." << std::endl;
-		result = listen(hServerSock, 5);
-		if (result == SOCKET_ERROR)
-		{
-			ErrorHandling("listen() error");
-		}
-
-		char tcpBuffer[BUFSIZ];
-		Sensor sensor;
-		std::stringbuf buffer;
-		std::ostream os(&buffer);
-		sensor.SerializeToOstream(&os);
-
-		std::thread t (client_connect, hServerSock, tcpBuffer, &sensor);
 
 		float _speed = 0;
 		char Lspeed[7];
@@ -237,130 +142,130 @@ int main() {		// Myo, Serial, Socket
 //				std::string s = buff1.substr(0, buff1.find_first_of("\n"));
 				std::cout << "Parsed: " << s << std::endl;
 
-				try {
-/*					if( Lmove == 0 )
-						sensor.set_arg0((float) (-1));
-					else
-						sensor.set_arg0((float) Lmove);
-					if (Rmove == 0)
-						sensor.set_arg1((float)(-1));
-					else
-						sensor.set_arg1((float) Rmove);
-
-					std::cout << Lmove << '\t' << Rmove << std::endl;
-*/
-					for (int i = 0; i < 8; i++) {
-//						std::cout << i << ':' << s << std::endl;
-						s = sensor_parsing(&sensor, s, i, &Lmove, &Rmove);
-					}
-/*
-					if (s.find(",") != std::string::npos) {
-						f = std::stof(s.substr(0, s.find_first_of(',')));
-						f = f == 0 ? -1 : f;
-						sensor.set_arg2(f);
-//						std::cout << "arg0: " << f << std::endl;
-						s = s.substr(s.find_first_of(',') + 1);
-					}
-					else {
-						f = std::stof(s.substr(0, s.find_first_of('\n')));
-						f = f == 0 ? -1 : f;
-						sensor.set_arg2(f);
-//						std::cout << "arg0: " << f << std::endl;
-					}
-
-					if (s.find(",") != std::string::npos) {
-						f = std::stof(s.substr(0, s.find_first_of(',')));
-						f = f == 0 ? -1 : f;
-						sensor.set_arg3(f);
-//						std::cout << "arg1: " << f << std::endl;
-						s = s.substr(s.find_first_of(',') + 1);
-					}
-					else {
-						f = std::stof(s.substr(0, s.find_first_of('\n')));
-						f = f == 0 ? -1 : f;
-						sensor.set_arg3(f);
-//						std::cout << "arg1: " << f << std::endl;
-					}
-
-					if (s.find(",") != std::string::npos) {
-						f = std::stof(s.substr(0, s.find_first_of(',')));
-						Lmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg4(f);
-//						std::cout << "arg2: " << f << std::endl;
-						s = s.substr(s.find_first_of(',') + 1);
-					}
-					else {
-						f = std::stof(s.substr(0, s.find_first_of('\n')));
-						Lmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg4(f);
-//						std::cout << "arg2: " << f << std::endl;
-					}
-
-					if (s.find(",") != std::string::npos) {
-						f = std::stof(s.substr(0, s.find_first_of(',')));
-						Rmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg5(f);
-//						std::cout << "arg3: " << f << std::endl;
-						s = s.substr(s.find_first_of(',') + 1);
-					}
-					else {
-						f = std::stof(s.substr(0, s.find_first_of('\n')));
-						Rmove += f;
-						f = f == 0 ? -1 : f;
-						sensor.set_arg5(f);
-//						std::cout << "arg3: " << f << std::endl;
-						f = 0;
-					}
-
-					if (s.find(",") != std::string::npos) {
-						f = std::stof(s.substr(0, s.find_first_of(',')));
-						f = f == 0 ? -1 : f;
-						sensor.set_arg6(f);
-//						std::cout << "arg4: " << f << std::endl;
-						s = s.substr(s.find_first_of(',') + 1);
-					}
-					else {
-						f = std::stof(s.substr(0, s.find_first_of('\n')));
-						f = f == 0 ? -1 : f;
-						sensor.set_arg6(f);
-//						std::cout << "arg4: " << f << std::endl;
-					}
-
-					sensor.set_arg7((float) (-1));
-					*/
-
-//					std::lock_guard<std::mutex> guard(tcpBuffer_mut);
-//					tcpBuffer_mut.lock();
-					while (1)
-						if (tcpBuffer_mut.try_lock())
-							break;
-					sensor.SerializeToArray(tcpBuffer, BUFSIZ);
-					tcpBuffer_mut.unlock();
-
-					//message send
-				}
-				catch (std::exception e) {
-					std::cout << "parsing error!" << std::endl;
-					std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
-					std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
-					std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
-//					std::cout << " (" << n << ')' << "\n";
-//					std::cout << " (" << buff1.find_first_of("\n") << ')' << "\n";
-					std::cout << "Parsed: " << s << std::endl;
-				}
+//				try {
+///*					if( Lmove == 0 )
+//						sensor.set_arg0((float) (-1));
+//					else
+//						sensor.set_arg0((float) Lmove);
+//					if (Rmove == 0)
+//						sensor.set_arg1((float)(-1));
+//					else
+//						sensor.set_arg1((float) Rmove);
+//
+//					std::cout << Lmove << '\t' << Rmove << std::endl;
+//*/
+//					for (int i = 0; i < 8; i++) {
+////						std::cout << i << ':' << s << std::endl;
+//						s = sensor_parsing(&sensor, s, i, &Lmove, &Rmove);
+//					}
+///*
+//					if (s.find(",") != std::string::npos) {
+//						f = std::stof(s.substr(0, s.find_first_of(',')));
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg2(f);
+////						std::cout << "arg0: " << f << std::endl;
+//						s = s.substr(s.find_first_of(',') + 1);
+//					}
+//					else {
+//						f = std::stof(s.substr(0, s.find_first_of('\n')));
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg2(f);
+////						std::cout << "arg0: " << f << std::endl;
+//					}
+//
+//					if (s.find(",") != std::string::npos) {
+//						f = std::stof(s.substr(0, s.find_first_of(',')));
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg3(f);
+////						std::cout << "arg1: " << f << std::endl;
+//						s = s.substr(s.find_first_of(',') + 1);
+//					}
+//					else {
+//						f = std::stof(s.substr(0, s.find_first_of('\n')));
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg3(f);
+////						std::cout << "arg1: " << f << std::endl;
+//					}
+//
+//					if (s.find(",") != std::string::npos) {
+//						f = std::stof(s.substr(0, s.find_first_of(',')));
+//						Lmove += f;
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg4(f);
+////						std::cout << "arg2: " << f << std::endl;
+//						s = s.substr(s.find_first_of(',') + 1);
+//					}
+//					else {
+//						f = std::stof(s.substr(0, s.find_first_of('\n')));
+//						Lmove += f;
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg4(f);
+////						std::cout << "arg2: " << f << std::endl;
+//					}
+//
+//					if (s.find(",") != std::string::npos) {
+//						f = std::stof(s.substr(0, s.find_first_of(',')));
+//						Rmove += f;
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg5(f);
+////						std::cout << "arg3: " << f << std::endl;
+//						s = s.substr(s.find_first_of(',') + 1);
+//					}
+//					else {
+//						f = std::stof(s.substr(0, s.find_first_of('\n')));
+//						Rmove += f;
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg5(f);
+////						std::cout << "arg3: " << f << std::endl;
+//						f = 0;
+//					}
+//
+//					if (s.find(",") != std::string::npos) {
+//						f = std::stof(s.substr(0, s.find_first_of(',')));
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg6(f);
+////						std::cout << "arg4: " << f << std::endl;
+//						s = s.substr(s.find_first_of(',') + 1);
+//					}
+//					else {
+//						f = std::stof(s.substr(0, s.find_first_of('\n')));
+//						f = f == 0 ? -1 : f;
+//						sensor.set_arg6(f);
+////						std::cout << "arg4: " << f << std::endl;
+//					}
+//
+//					sensor.set_arg7((float) (-1));
+//					*/
+//
+////					std::lock_guard<std::mutex> guard(tcpBuffer_mut);
+////					tcpBuffer_mut.lock();
+//					while (1)
+//						if (tcpBuffer_mut.try_lock())
+//							break;
+//					sensor.SerializeToArray(tcpBuffer, BUFSIZ);
+//					tcpBuffer_mut.unlock();
+//
+//					//message send
+//				}
+//				catch (std::exception e) {
+//					std::cout << "parsing error!" << std::endl;
+//					std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
+//					std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
+//					std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
+////					std::cout << " (" << n << ')' << "\n";
+////					std::cout << " (" << buff1.find_first_of("\n") << ')' << "\n";
+//					std::cout << "Parsed: " << s << std::endl;
+//				}
 			}
 //			std::cout << " (" << n << ')' << "\n";
 		}
-		std::thread *p;
-		while (!clientThreads.empty()) {
-			p = clientThreads.top();
-			p->join();
-			clientThreads.pop();
-		}
-		t.join();
+		//std::thread *p;
+		//while (!clientThreads.empty()) {
+		//	p = clientThreads.top();
+		//	p->join();
+		//	clientThreads.pop();
+		//}
+		//t.join();
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
@@ -369,65 +274,4 @@ int main() {		// Myo, Serial, Socket
 		return 1;
 	}
 
-}
-
-void client_connect(SOCKET hServerSock, char *tcpBuffer, Sensor *sensor) {
-	SOCKET hClientSock;
-	SOCKADDR_IN clientAddr;
-	int sizeClientAddr;
-	//accept client
-	std::cout << "accept client..." << std::endl;
-	sizeClientAddr = sizeof(clientAddr);
-/*
-	while (1) {
-		std::thread t(client_send, hClientSock, tcpBuffer, sensor);
-		t.detach();
-	}
-	*/
-
-	while(1) {
-		hClientSock = accept(hServerSock, (SOCKADDR*)&clientAddr, &sizeClientAddr);
-		//	hClientSock = INVALID_SOCKET;// = accept(hServerSock, (SOCKADDR*)&clientAddr, &sizeClientAddr);
-		if (hClientSock == INVALID_SOCKET)
-		{
-			ErrorHandling("accept() error");
-		}
-		std::cout << "connected" << std::endl;
-
-		std::thread t(client_send, hClientSock, tcpBuffer, sensor);
-		clientThreads.push(&t);
-		t.detach();
-//		t.join();
-	}
-}
-
-void client_send(SOCKET hClientSock, char *tcpBuffer, Sensor *sensor) {
-
-	while (1) {
-//		for (int i=0; i < 1000; i++);
-		Sleep(motor_delay);	// 20ms
-//		std::this_thread::sleep_for(std::chrono::milliseconds(20));
-		try {
-//			std::lock_guard<std::mutex> guard(tcpBuffer_mut);
-			while (1)
-				if (tcpBuffer_mut.try_lock()) 
-					break;
-			send(hClientSock, tcpBuffer, (*sensor).ByteSize(), 0);
-			tcpBuffer_mut.unlock();
-		}
-		catch (std::exception e) {
-			std::cout << "cannot send data!" << std::endl;
-		}
-		std::cout << "send: " << (*sensor).ByteSize() << std::endl;
-	}
-
-}
-
-
-void ErrorHandling(char* message)
-{
-	fputs(message, stdout);
-	fputc('\n', stdout);
-	system("pause");
-	exit(1);
 }
