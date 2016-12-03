@@ -69,8 +69,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\yys8646\Source\Repos\myodesignproject\install\include;C:\Users\yys8646\Source\Repos\myodesignproject\MyoNucMotor\MyoNucMotor\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\yys8646\Source\Repos\myodesignproject\install\lib;C:\Users\yys8646\Source\Repos\myodesignproject\MyoNucMotor\MyoNucMotor\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\YYS8646\Documents\myodesignproject\cURL\include;C:\Users\yys8646\Source\Repos\myodesignproject\install\include;C:\Users\yys8646\Source\Repos\myodesignproject\MyoNucMotor\MyoNucMotor\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\YYS8646\Documents\myodesignproject\cURL;C:\Users\yys8646\Source\Repos\myodesignproject\install\lib;C:\Users\yys8646\Source\Repos\myodesignproject\MyoNucMotor\MyoNucMotor\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>MyoNucMotor\include;..\install\include;..\cURL\include;$(IncludePath)</IncludePath>
@@ -82,12 +82,12 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>include;../../install/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../cURL/include;include;../../install/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libprotobufd.lib;libprotobuf-lited.lib;libprotocd.lib;myo32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>lib;../../install/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../cURL;lib;../../install/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>myo32.lib;myo64.lib;libcurl.lib;libprotobufd.lib;libprotobuf-lited.lib;libprotocd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
