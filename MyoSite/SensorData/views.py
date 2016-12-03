@@ -20,8 +20,11 @@ def getData(request):
 def input(request):
 	new_ip = request.META['REMOTE_ADDR']
 	new_temp = 0
-	if request.method == "POST":
-		new_temp = float(request.POST.get('temp'))
-	data = Data(ip=new_ip, measureTime=timezone.now(), temperature=new_temp)
-	data.save()
-	return HttpResponse('Successfully Store Data!\n')
+	try:
+		if request.method == "POST":
+			new_temp = float(request.POST.get('temp'))
+		data = Data(ip=new_ip, measureTime=timezone.now(), temperature=new_temp)
+		data.save()
+		return HttpResponse('Successfully Store Data!\n')
+	except:
+		return HttpResponse('Fail\n')
