@@ -1,0 +1,28 @@
+{% load staticfiles %}
+<!doctype html>
+<html>
+	<head>
+		<style>
+			h1{color:blue}
+		</style>
+	<meta charset="utf-8">
+		<title>Myo Car Monitoring Centor</title>
+	</head>
+	<body>
+		<h1>Myo Car Monitoring Centor</h1>
+		<!--<canvas id="player" style="background: #000;">
+	      Your browser sucks.
+	    </canvas>-->
+	    <h2>Temperature</h2>
+	    <div id="temperature"></div>
+	</body>
+	<!--<script src="{% static 'js/mjpeg.js' %}"></script>
+	<script>
+    var player = new MJPEG.Player("player", "http://192.168.0.6:8080/test.mjpeg");
+    player.start();
+  	</script>-->
+  	<script src="{% static 'js/data.js' %}"></script>
+  	<script>
+  		setInterval(getData, 1000);
+  	</script>
+</html>
