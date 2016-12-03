@@ -27,4 +27,5 @@ def input(request):
 		data.save()
 		return HttpResponse('Successfully Store Data!\n')
 	except:
-		return HttpResponse('Fail\n')
+		ErrorStr = 'Fail: ' + request.body + '\n'
+		return HttpResponse(ErrorStr)
