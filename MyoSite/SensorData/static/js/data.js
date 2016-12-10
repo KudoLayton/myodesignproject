@@ -5,7 +5,8 @@ function getData(){
 		if(xhr.readyState === 4){
 			if(xhr.status === 200){
 				data = JSON.parse(xhr.responseText);
-				document.getElementById("temperature").innerHTML = data[0].fields.temperature+"°C"; 
+				document.getElementById("temperature").innerHTML = data[0].fields.temperature+"°C";
+				document.getElementById("pressure").innerHTML = data[0].fields.pressure+"hPa";
 			}
 		}
 	}
