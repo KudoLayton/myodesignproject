@@ -7,8 +7,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 
 def monitor(request):
-	lastdata = Data.objects.latest('id')
-	return render(request, 'SensorData/monitor.html', {'ip': lastdata.ip})
+	try:
+		lastdata = Data.objects.latest('id')
+		return render(request, 'SensorData/monitor.html', {'ip': lastdata.ip})
+	except:
+		return render(request, 'SensorData/monitor.html', {'ip': "No Data"})
 
 @csrf_exempt
 def getData(request):
