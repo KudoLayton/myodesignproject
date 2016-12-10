@@ -13,5 +13,14 @@ class Data(models.Model):
 	#temperature(celcious)
 	temperature = models.FloatField()
 
+	#current velocity(m/s)
+	curVel = models.FloatField()
+
+	#average velocity(m/s)
+	aveVel = models.FloatField()
+
+	#pressure velocity(hPa)
+	pressure = models.FloatField()
+
 	def __str__(self):
 		return self.measureTime + ": " + temperature
