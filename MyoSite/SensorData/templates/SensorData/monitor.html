@@ -12,9 +12,8 @@
 		<h1>Myo Car Monitoring Centor</h1>
 		<h2>Myo Car IP</h2>
 		{{ ip }}
-		<!--<canvas id="player" style="background: #000;">
-	      Your browser sucks.
-	    </canvas>-->
+		<h2>Myo Car Camera</h2>
+			<div id="mjpeg_wrapper" style="width: 480px; height: 360px;"></div>
 	    <h2>Current Velocity</h2>
 	    	<canvas id="curVel"></canvas>
 	    <h2>Average Velocity</h2>
@@ -30,7 +29,16 @@
     player.start();
   	</script>-->
   	<script src="{% static 'js/data.js' %}"></script>
+  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+  	<script type="{% static 'js/jquery.mjpeg.streaming.player.js' %}"></script>
   	<script>
   		setInterval(getData, 50);
+  		$('#mjpeg_wrapper').clipchamp_mjpeg_player(
+		  'http://{{ ip }}/', 
+		  20, // frames per second
+		  true, // autoloop
+		  function(wrapperElement, playerInterface) {
+		    // call playerInterface.finish() to stop the playback 
+		});
   	</script>
 </html>
