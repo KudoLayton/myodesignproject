@@ -26,14 +26,12 @@ def input(request):
 	new_temp = 0
 	new_press = 0
 	new_curVel = 0
-	new_avrVel = 0
 	try:
 		if request.method == "POST":
 			new_temp = float(request.POST.get('temp'))
 			new_press = float(request.POST.get('press'))
 			new_curVel = float(request.POST.get('curvel'))
-			new_avrVel = float(request.POST.get('avrvel'))
-		data = Data(ip=new_ip, measureTime=timezone.now(), temperature=new_temp, curVel = new_curVel, aveVel = new_avrVel, pressure = new_press)
+		data = Data(ip=new_ip, measureTime=timezone.now(), temperature=new_temp, curVel = new_curVel, aveVel = 0, pressure = new_press)
 		data.save()
 		return HttpResponse('Successfully Store Data!\n')
 	except:
