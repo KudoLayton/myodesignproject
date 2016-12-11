@@ -30,7 +30,7 @@
   	</script>-->
   	<script src="{% static 'js/data.js' %}"></script>
   	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-  	<script type="{% static 'js/jquery.mjpeg.streaming.player.js' %}"></script>
+  	<script src="{% static 'js/jquery.mjpeg.streaming.player.js' %}"></script>
   	<script>
   		setInterval(getData, 50);
   		$('#mjpeg_wrapper').clipchamp_mjpeg_player(
