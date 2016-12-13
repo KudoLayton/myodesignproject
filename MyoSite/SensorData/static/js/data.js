@@ -20,7 +20,7 @@ function getData(bar){
 				document.getElementById("temperature").innerHTML = data[0].fields.temperature+"°C";
 				document.getElementById("pressure").innerHTML = data[0].fields.pressure+"hPa";
 				document.getElementById("curVelVal").innerHTML = data[0].fields.curVel+"m/s";
-				var cvpercent = data[0].fields.curVel / 3.5;
+				var cvpercent = Math.abs(data[0].fields.curVel) / 3.5;
 				var curVelCanvas = document.getElementById('curVel');
 				var cvctx = curVelCanvas.getContext('2d');
 				cvctx.clearRect(0, 0, curVelCanvas.height, curVelCanvas.width);
