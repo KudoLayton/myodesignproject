@@ -26,9 +26,100 @@
 
 #define Car_L 15
 #define Car_d 20
-#define Whell_r 3
-#define rpm2cm_s (3*3.141592/60)
+#define Whell_2r 3
+#define rpm2cm_s (Whell_2r*3.141592/60)
 #define motor_delay 20
+
+std::string read_from_port(char *buff) {
+	std::string buffs = buff;
+	std::string buffs1 = buffs.substr(0, buffs.find_first_of('\n'));
+	std::cout << "\n buffs1: " << buffs1 << std::endl;
+
+	std::string vals[6];
+	for (int i = 0; i < 6; i++) {
+		if (buffs1.find_first_of(',') < buffs1.length()) {
+			vals[i] = buffs1.substr(0, buffs1.find_first_of(','));
+			buffs1.erase(0, buffs1.find_first_of(',') + 2);
+		}
+		else if (buffs1.find_first_of('\r') <= buffs1.length()) {
+			vals[i] = buffs1.substr(0, buffs1.find_first_of('\r'));
+			buffs1.erase(0, buffs1.find_first_of('\r'));
+		}
+		else break;
+	}
+
+	std::string Lspeed = vals[0];
+	std::string Rspeed = vals[1];
+	int curvel_i = ((atoi(Lspeed.c_str()) + atoi(Rspeed.c_str())) / 2) / (rpm2cm_s*100);
+	std::cout << curvel_i << std::endl;
+	std::string curvel = std::to_string(curvel_i);
+	std::string Ldistance = vals[2];
+	std::string Rdistance = vals[3];
+	//std::string avrvel = std::to_string((atoi(Lspeed.c_str()) + atoi(Rspeed.c_str())) / 2);
+	std::string temp = vals[4];
+	std::string pressure = vals[5];
+
+	//if (vals[5].string)
+
+	temp = "temp=" + temp;
+	pressure = "&press=" + pressure;
+	curvel = "&curvel=" + curvel;
+	std::string total = temp + pressure + curvel;
+//	total += 
+	return total;
+	////			std::cout << "\n buff: " << buff << std::endl;
+
+	//std::string buff_val = buffs1.substr(0, buffs.find_first_of(','));
+	//buffs1.erase(0, buffs1.find_first_of(',') + 2);
+	//std::cout << "\n buff_val: " << buff_val << std::endl;
+	//std::cout << "\n buffs1: " << buffs1 << std::endl;
+	//std::string val = buffs1.substr(0, buffs.find_first_of(','));
+
+	//std::string temp = "temp=" + buff_val;
+	//std::cout << "\n temp: " << temp << std::endl;
+
+	//std::string press = "&press=";
+	////std::string buff_val = buffs1.substr(0, buffs.find_first_of(','));
+
+	//std::string total;
+
+
+	////			buff1.erase(std::unique(buff1.begin(), buff1.end(),
+	////				[](char a, char b) { return a == '\n' && b == '\n'; }), buff1.end());
+	////			if (buff1.find_first_of("\n") == 0)
+	////				buff1.erase(0);
+	////
+	////			std::string buff2 = buff1.substr(buff1.find_first_of('\n') + 1);
+	////			std::string buff3 = buff2.substr(buff2.find_first_of('\n') + 1);
+	////
+	////			std::cout << "Total Read: " << buff1.substr(0, n) << std::endl;
+	////
+	////			std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
+	////			std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
+	////
+	////			if ( buff3.find("\n") != std::string::npos){
+	//////				std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
+	////
+	////				std::string s = buff1.find("set", buff1.find_first_of("\n")) != std::string::npos ?	// buff1 : set~
+	////					buff2.find("set", buff2.find_first_of("\n")) != std::string::npos ? // buff2 : set~
+	////						buff1.substr(0, buff1.find_first_of("\n")) :
+	////						buff3.substr(0, buff3.find_first_of("\n")) :
+	////						buff2.substr(0, buff2.find_first_of("\n"))	;
+	////
+	//////				std::string s = buff1.substr(0, buff1zz.find_first_of("\n"));
+	//////				std::cout << "Parsed: " << s << std::endl;
+	////			}
+	//////			std::cout << " (" << n << ')' << "\n";
+	////
+	////std::cout << buff2 << std::endl;
+	////std::string val = buff2.substr(buff2.find_first_of('=')+1, buff2.find_first_of("\n")-buff2.find_first_of('=') - 2);
+	////std::cout << "val: " + val << std::endl;
+	////			if (!buffn.empty()) buffn.erase('\n');
+	//std::string curvel = "&curvel=";
+	//std::string avrvel = "&avrvel=";
+	////std::string total = temp + val + press + val + curvel + val + avrvel + val;
+	//return total;
+}
 
 int main() {		// Myo, Serial, curl
 	try {
@@ -51,12 +142,12 @@ int main() {		// Myo, Serial, curl
 
 		// serial open
 		CSerialPort port;
-//		if (!port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY))
-		//if (!port.Open(L"COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY))
+		//if (!port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY))
+		if (!port.Open(L"COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY))
 		//	if (!port.Open(L"\\\\.\\COM17", CBR_115200, 8, ONESTOPBIT, NOPARITY))
-		//		return 1;
-		if (!port.Open(L"COM3", CBR_9600, 8, ONESTOPBIT, NOPARITY))
 				return 1;
+		//if (!port.Open(L"COM3", CBR_9600, 8, ONESTOPBIT, NOPARITY))
+		//		return 1;
 		port.SetTimeout(10, 10, 1);
 
 		// serial init
@@ -84,6 +175,7 @@ int main() {		// Myo, Serial, curl
 		float Lmove = 0;
 		float Rmove = 0;
 
+		// curry
 		CURL *curl;
 		CURLcode res;
 		curl_global_init(CURL_GLOBAL_ALL);
@@ -98,7 +190,7 @@ int main() {		// Myo, Serial, curl
 			_itoa_s((int)((1 + _speed) * collector.speed * 20), Rspeed, 10);
 //			std::cout << "theta: " << collector.theta << '\t' << _speed << std::endl;
 //			std::cout << "\r";
-			std::cout << "speed: " << Lspeed << '\t' << Rspeed << "\t" << Lmove << "\t" << Rmove;// << std::endl;
+			std::cout << "set speed: " << Lspeed << '\t' << Rspeed << "\t" << Lmove << "\t" << Rmove;// << std::endl;
 
 			// serial comm
 			strcpy_s(buff, "sl");
@@ -124,45 +216,15 @@ int main() {		// Myo, Serial, curl
 
 			// read from port
 			n = port.Read(buff, 1024);
-			std::string buff1 = buff;
-
-			buff1.erase(std::unique(buff1.begin(), buff1.end(),
-				[](char a, char b) { return a == '\n' && b == '\n'; }), buff1.end());
-			if (buff1.find_first_of("\n") == 0)
-				buff1.erase(0);
-
-			std::string buff2 = buff1.substr(buff1.find_first_of('\n') + 1);
-			std::string buff3 = buff2.substr(buff2.find_first_of('\n') + 1);
-
-//			std::cout << "Total Read: " << buff1.substr(0, n) << std::endl;
-
-//			std::cout << "buff1: " << buff1.substr(0, buff1.find_first_of("\n")) << std::endl;
-//			std::cout << "buff2: " << buff2.substr(0, buff2.find_first_of("\n")) << std::endl;
-
-			if ( buff3.find("\n") != std::string::npos){
-//				std::cout << "buff3: " << buff3.substr(0, buff3.find_first_of("\n")) << std::endl;
-
-				std::string s = buff1.find("set", buff1.find_first_of("\n")) != std::string::npos ?	// buff1 : set~
-					buff2.find("set", buff2.find_first_of("\n")) != std::string::npos ? // buff2 : set~
-						buff1.substr(0, buff1.find_first_of("\n")) :
-						buff3.substr(0, buff3.find_first_of("\n")) :
-						buff2.substr(0, buff2.find_first_of("\n"))	;
-
-//				std::string s = buff1.substr(0, buff1.find_first_of("\n"));
-//				std::cout << "Parsed: " << s << std::endl;
-			}
-//			std::cout << " (" << n << ')' << "\n";
-
-			std::string buffn = buff2.substr(0, buff2.find_first_of("\n"));
-//			if (!buffn.empty()) buffn.erase('\n');
-
-			std::cout << "buffn: " << buffn << std::endl;
+			std::string total = read_from_port(buff);
 
 			curl = curl_easy_init();
 			if (curl) {
-				curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.0.83:8000/input/");
-//				curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "temp=28.2");
-				curl_easy_setopt(curl, CURLOPT_POSTFIELDS, buffn.c_str());
+				curl_easy_setopt(curl, CURLOPT_URL, "http://lhslhg.iptime.org/input/");
+				//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "temp=28.2&press=33.0");
+				//if (val.size() != 0) {
+					curl_easy_setopt(curl, CURLOPT_POSTFIELDS, total.c_str());
+				//}
 				res = curl_easy_perform(curl);
 				if (res != CURLE_OK)
 					fprintf(stderr, "curl_Easy_perform() failed: %s\n", curl_easy_strerror(res));
