@@ -23,6 +23,12 @@
 
 #define PORT_NAME L"COM3"
 //#define PORT_NAME L"\\\\.\\COM14"
+#define PORT_MOTOR_COM L"COM5"
+#define PORT_BTHCTRL_COM L"\\\\.\\COM19"
+#define PORT_CAMMOTOR_COM L"\\\\.\\COM18"
+#define PORT_MOTOR_NUC L"COM3"
+#define PORT_BTHCTRL_NUC L"COM6"
+#define PORT_CAMMOTOR_NUC L"COM5"
 
 #define Car_L 15
 #define Car_d 20
@@ -172,6 +178,24 @@ int main() {		// Myo, Serial, curl
 		//		return 1;
 		port.SetTimeout(10, 10, 1);
 
+
+		// bthctrl
+		CSerialPort port_bthctrl;
+		if (!port_bthctrl.Open(PORT_BTHCTRL_NUC, CBR_9600, 8, ONESTOPBIT, NOPARITY))
+			if (!port_bthctrl.Open(PORT_BTHCTRL_COM, CBR_9600, 8, ONESTOPBIT, NOPARITY))
+				return 1;
+		port_bthctrl.SetTimeout(10, 10, 1);
+
+		// cammotor
+		CSerialPort port_cammotor;
+		if (!port_cammotor.Open(PORT_CAMMOTOR_NUC, CBR_9600, 8, ONESTOPBIT, NOPARITY))
+			if (!port_bthctrl.Open(PORT_BTHCTRL_COM, CBR_9600, 8, ONESTOPBIT, NOPARITY))
+				return 1;
+		port_cammotor.SetTimeout(10, 10, 1);
+
+
+
+
 		// serial init
 		port.Flush();
 		char buff[BUFSIZ];
@@ -196,6 +220,8 @@ int main() {		// Myo, Serial, curl
 
 		float Lmove = 0;
 		float Rmove = 0;
+
+		char camtheta = 8 << 4 + 8;
 
 		// curry
 		CURL *curl;
@@ -256,6 +282,50 @@ int main() {		// Myo, Serial, curl
 				}
 			}
 		}
+
+		char **context = (char **)malloc(sizeof(char) * 1024);
+
+		// bthctrl - cammotor
+		n = port_bthctrl.Read(buff, 1024);
+		char* pch = strtok_s(buff, "\n", context);
+		char *ptr;
+
+		float f[4] = { 2,2,2,2 }; //값이 안나올때 초기값을 2로잡아서 에러처리
+
+		f[0] = strtof(pch, &ptr);
+		f[1] = strtof(ptr + 1, &ptr);
+		f[2] = strtof(ptr + 1, &ptr);
+		f[3] = strtof(ptr + 1, &ptr);
+
+		//		std::wcout << "READ: " << pch << " (" << n << ')' << '\n';
+		std::cout << f[0] << "\t" << f[1] << "\t" << f[2] << "\t" << f[3];
+
+		if (f[4] <= -0.3) {
+			camtheta += 1;
+			camtheta = (camtheta % (1 << 4)) > 15 ? 15 : camtheta;
+		}
+		else if (f[4] >= 0.3) {
+			camtheta -= 1;
+			camtheta = camtheta < 0 ? 0 : camtheta;
+		}
+
+		if (f[3] <= -0.3) {
+			camtheta += 1 << 4;
+			camtheta = camtheta > 15 << 4 ? 15 << 4 : camtheta;
+		}
+		else if (f[3] >= 0.3) {
+			camtheta -= 1 << 4;
+			camtheta = camtheta < 0 ? 0 : camtheta;
+		}
+
+		//		std::cin >> (char) hor >> "\t" >> (char) ver;
+		//			(int)(f[4] * 8) + 8;
+		port_cammotor.Write(&camtheta, sizeof(char));
+
+		std::cout << "\t\t\t" << (int)(camtheta >> 4) << '\t' << (int)(camtheta % (1 << 4)) << "\t";
+
+			}
+
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
