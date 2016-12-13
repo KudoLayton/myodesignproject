@@ -30,10 +30,28 @@
 #define rpm2cm_s (Whell_2r*3.141592/60)
 #define motor_delay 20
 
-std::string read_from_port(char *buff) {
+std::string read_from_port(char *buff, float *Lmove, float *Rmove) {
 	std::string buffs = buff;
-	std::string buffs1 = buffs.substr(0, buffs.find_first_of('\n'));
-	std::cout << "\n buffs1: " << buffs1 << std::endl;
+	while (buffs.find_first_of('\n') == 0)
+		buffs.erase(0, 1);
+	//buffs.erase(std::unique(buffs.begin(), buffs.end(),
+	//	[](char a, char b) { return a == '\n' && b == '\n'; }), buffs.end());
+	while (buffs.find_first_of('s') == 0) {
+		//std::cout << buffs.substr(0, buffs.find_first_of('\n')) << std::endl;
+		buffs.erase(0, buffs.find_first_of('\n'));
+		while (buffs.find_first_of('\n') == 0)
+			buffs.erase(0, 1);
+	}
+
+	//std::cout << "\n buffs: " << buffs << std::endl;
+	std::string buffs1 = buffs.substr(0, buffs.find_first_of('\n')+1);
+	//std::cout << "\n buffs1: " << buffs1 << std::endl;
+	//while(std::string buffs1 = buffs.substr(0, buffs.find_first_of('\n')) && buffs1.size() != 0)
+	//do {
+	//	;
+	//} while (std::string buffs1 = buffs.sub.size() != 0);
+	if (buffs1.length() < 2)
+		return std::string(" ");
 
 	std::string vals[6];
 	for (int i = 0; i < 6; i++) {
@@ -41,9 +59,9 @@ std::string read_from_port(char *buff) {
 			vals[i] = buffs1.substr(0, buffs1.find_first_of(','));
 			buffs1.erase(0, buffs1.find_first_of(',') + 2);
 		}
-		else if (buffs1.find_first_of('\r') <= buffs1.length()) {
-			vals[i] = buffs1.substr(0, buffs1.find_first_of('\r'));
-			buffs1.erase(0, buffs1.find_first_of('\r'));
+		else if (buffs1.find_first_of('\n') < buffs1.length()) {
+			vals[i] = buffs1.substr(0, buffs1.find_first_of('\n'));
+			buffs1.erase(0, buffs1.find_first_of('\n') + 1);
 		}
 		else break;
 	}
@@ -51,21 +69,25 @@ std::string read_from_port(char *buff) {
 	std::string Lspeed = vals[0];
 	std::string Rspeed = vals[1];
 	int curvel_i = ((atoi(Lspeed.c_str()) + atoi(Rspeed.c_str())) / 2) / (rpm2cm_s*100);
-	std::cout << curvel_i << std::endl;
+	//std::cout << curvel_i << std::endl;
 	std::string curvel = std::to_string(curvel_i);
 	std::string Ldistance = vals[2];
+	*Lmove = atof(Ldistance.c_str());
 	std::string Rdistance = vals[3];
+	*Rmove = atof(Rdistance.c_str());
 	//std::string avrvel = std::to_string((atoi(Lspeed.c_str()) + atoi(Rspeed.c_str())) / 2);
 	std::string temp = vals[4];
 	std::string pressure = vals[5];
 
 	//if (vals[5].string)
+	//std::cout << temp << std::endl;
+	temp = std::string("temp=").append(temp);
+	pressure = std::string("&press=").append(pressure);
+	curvel = std::string("&curvel=").append(curvel);
+	std::string total = temp.append(pressure.append(curvel));
 
-	temp = "temp=" + temp;
-	pressure = "&press=" + pressure;
-	curvel = "&curvel=" + curvel;
-	std::string total = temp + pressure + curvel;
-//	total += 
+	//std::cout << total << std::endl;
+	//std::cout << total.c_str() << std::endl;
 	return total;
 	////			std::cout << "\n buff: " << buff << std::endl;
 
@@ -143,7 +165,7 @@ int main() {		// Myo, Serial, curl
 		// serial open
 		CSerialPort port;
 		//if (!port.Open(PORT_NAME, CBR_115200, 8, ONESTOPBIT, NOPARITY))
-		if (!port.Open(L"COM3", CBR_115200, 8, ONESTOPBIT, NOPARITY))
+		if (!port.Open(L"COM5", CBR_115200, 8, ONESTOPBIT, NOPARITY))
 		//	if (!port.Open(L"\\\\.\\COM17", CBR_115200, 8, ONESTOPBIT, NOPARITY))
 				return 1;
 		//if (!port.Open(L"COM3", CBR_9600, 8, ONESTOPBIT, NOPARITY))
@@ -156,7 +178,7 @@ int main() {		// Myo, Serial, curl
 		int n;
 
 		std::cout << "WRITE: ";
-		strcpy_s(buff, "sp0.001f");
+		strcpy_s(buff, "sp0.0005f");
 		std::cout << buff << std::endl;
 		n = strlen(buff);
 		// write from port
@@ -190,7 +212,8 @@ int main() {		// Myo, Serial, curl
 			_itoa_s((int)((1 + _speed) * collector.speed * 20), Rspeed, 10);
 //			std::cout << "theta: " << collector.theta << '\t' << _speed << std::endl;
 //			std::cout << "\r";
-			std::cout << "set speed: " << Lspeed << '\t' << Rspeed << "\t" << Lmove << "\t" << Rmove;// << std::endl;
+			std::cout << "set speed: " << Lspeed << '\t' << Rspeed << "\t";
+			//<< Lmove << "\t" << Rmove;// << std::endl;
 
 			// serial comm
 			strcpy_s(buff, "sl");
@@ -212,23 +235,25 @@ int main() {		// Myo, Serial, curl
 			// write from port
 			port.Write(buff, n);
 //			std::cout << "WRITE: " << buff << std::endl;
-			Sleep(20);
+			Sleep(100);
 
 			// read from port
 			n = port.Read(buff, 1024);
-			std::string total = read_from_port(buff);
+			std::string total = read_from_port(buff, &Lmove, &Rmove);
 
-			curl = curl_easy_init();
-			if (curl) {
-				curl_easy_setopt(curl, CURLOPT_URL, "http://lhslhg.iptime.org/input/");
-				//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "temp=28.2&press=33.0");
-				//if (val.size() != 0) {
+			if (total.length() > 1) {
+				curl = curl_easy_init();
+				if (curl) {
+					curl_easy_setopt(curl, CURLOPT_URL, "http://lhslhg.iptime.org/input/");
+					//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "temp=28.2&press=33.0");
+					//if (val.size() != 0) {
 					curl_easy_setopt(curl, CURLOPT_POSTFIELDS, total.c_str());
-				//}
-				res = curl_easy_perform(curl);
-				if (res != CURLE_OK)
-					fprintf(stderr, "curl_Easy_perform() failed: %s\n", curl_easy_strerror(res));
-				curl_easy_cleanup(curl);
+					//}
+					res = curl_easy_perform(curl);
+					if (res != CURLE_OK)
+						fprintf(stderr, "curl_Easy_perform() failed: %s\n", curl_easy_strerror(res));
+					curl_easy_cleanup(curl);
+				}
 			}
 		}
 	}
